@@ -1,0 +1,27 @@
+{
+    "name": "icicleio/dns",
+    "description": "Asynchronous DNS resolver for Icicle.",
+    "keywords": [
+        "dns",
+        "resolver",
+        "asynchronous",
+        "async"
+    ],
+    "homepage": "http://icicle.io",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Aaron Piotrowski",
+            "email": "aaron@icicle.io"
+        }
+    ],
+    "require": {
+        "icicleio/icicle": "0.1.*",
+        "daverandom/libdns": "~1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Icicle\\Dns\\": "src"
+        }
+    }
+}
