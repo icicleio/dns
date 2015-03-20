@@ -1,44 +1,26 @@
 <?php
 namespace Icicle\Dns\Resolver;
 
-use LibDNS\Messages\MessageFactory;
-use LibDNS\Messages\MessageTypes;
-use LibDNS\Records\QuestionFactory;
-use LibDNS\Records\ResourceQTypes;
+use Exception;
+use LibDNS\Records\RecordCollection;
 use LibDNS\Records\ResourceTypes;
-use LibDNS\Encoder\EncoderFactory;
-use LibDNS\Decoder\DecoderFactory;
+use Icicle\Dns\Executor\ExecutorInterface;
+use Icicle\Dns\Query\Query;
+use Icicle\Promise\Promise;
 
-use Icicle\Dns\Resolver\Exception\FailureException;
-use Icicle\Dns\Resolver\Exception\NotFoundException;
-use Icicle\Socket\Client;
-
-class Resolver
+class Resolver implements ResolverInterface
 {
-    const DEFAULT_TIMEOUT = 10;
-    
-    private $nameserver;
-    
-    private $questionFactory;
-    
-    private $messageFactory;
-    
-    private $encoder;
-    
-    private $decoder;
+    /**
+     * @var ExecutorInterface
+     */
+    private $executor;
     
     /**
-     * @param   string $nameserver Nameserver IP address to resolve queries.
+     * @param   ExecutorInterface $executor
      */
-    public function __construct($nameserver)
+    public function __construct(ExecutorInterface $executor)
     {
-        $this->nameserver = $nameserver;
-        
-        $this->questionFactory = new QuestionFactory();
-        $this->messageFactory = new MessageFactory();
-        
-        $this->encoder = (new EncoderFactory())->create();
-        $this->decoder = (new DecoderFactory())->create();
+        $this->executor = $executor;
     }
     
     /**
@@ -47,45 +29,34 @@ class Resolver
      *
      * @return  Icicle\Promise\PromiseInterface
      *
-     * @resolve RecordCollection
+     * @resolve string Resolved IP address.
      *
-     * @reject  FailureException If the server returns a non-zero response code.
-     * @reject  NotFoundException If the domain cannot be resolved.
+     * @reject  Icicle\Dns\Query\Execption\FailureException If the server returns a non-zero response code.
+     * @reject  Icicle\Dns\Query\Execption\NotFoundException If the domain cannot be resolved.
      */
-    public function resolve($domain, $timeout = self::DEFAULT_TIMEOUT)
+    public function resolve($domain, $timeout = ExecutorInterface::DEFAULT_TIMEOUT)
     {
-        $question = $this->questionFactory->create(ResourceQTypes::A);
-        $question->setName($domain);
+        try {
+            $query = new Query($domain, ResourceTypes::A);
+        } catch (Exception $e) {
+            return Promise::reject($exception);
+        }
         
-        $request = $this->messageFactory->create(MessageTypes::QUERY);
-        $request->getQuestionRecords()->add($question);
-        $request->isRecursionDesired(true);
-        
-        return Client::connect($this->nameserver, 53, ['protocol' => 'udp'])
-            ->then(function ($client) use ($request, $timeout) {
-                $client->write($this->encoder->encode($request));
-                return $client->read(512, $timeout);
-            })
-            ->then(function ($data) use ($domain) {
-                $response = $this->decoder->decode($data);
-                
-                if (0 !== $response->getResponseCode()) {
-                    throw new FailureException("Server returned response code {$response->getResponseCode()}.");
-                }
-                
-                $answers = $response->getAnswerRecords();
-                
+        return $this->executor->execute($query, $timeout)
+            ->then(function (RecordCollection $answers) {
                 foreach (clone $answers as $record) {
                     if (ResourceTypes::CNAME === $record->getType()) {
                         $answers->remove($record);
                     }
                 }
                 
-                if (0 === count($answers)) {
-                    throw new NotFoundException($domain);
+                $count = count($answers);
+                
+                if (1 < $count) {
+                    return $answers->getRecordByIndex(mt_rand(0, $count - 1))->getData();
                 }
                 
-                return $answers;
+                return $answers->getRecordByIndex(0)->getData();
             });
     }
 }

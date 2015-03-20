@@ -5,17 +5,19 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Executor\Executor;
-use Icicle\Dns\Resolver\Resolver;
+use Icicle\Dns\Query\Query;
 use Icicle\Loop\Loop;
 
 $coroutine = Coroutine::call(function ($query, $timeout = 10) {
     echo "Query: {$query}:\n";
     
-    $resolver = new Resolver(new Executor('8.8.8.8'));
+    $executor = new Executor('8.8.8.8');
     
-    $ip = (yield $resolver->resolve($query, $timeout));
+    $answers = (yield $executor->execute(new Query($query, 'A'), $timeout));
     
-    echo "IP: {$ip}\n";
+    foreach ($answers as $record) {
+        echo "Result: ({$record->getType()}) {$record->getData()}\n";
+    }
 }, 'www.icicle.io');
 
 $coroutine->capture(function (Exception $e) {

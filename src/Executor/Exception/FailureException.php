@@ -1,4 +1,4 @@
 <?php
-namespace Icicle\Dns\Resolver\Exception;
+namespace Icicle\Dns\Executor\Exception;
 
 class FailureException extends RuntimeException {}
