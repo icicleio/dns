@@ -2,11 +2,12 @@
 namespace Icicle\Dns\Resolver;
 
 use Exception;
-use LibDNS\Records\RecordCollection;
-use LibDNS\Records\ResourceTypes;
+use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Query\Query;
 use Icicle\Promise\Promise;
+use LibDNS\Records\RecordCollection;
+use LibDNS\Records\ResourceTypes;
 
 class Resolver implements ResolverInterface
 {
@@ -14,6 +15,16 @@ class Resolver implements ResolverInterface
      * @var ExecutorInterface
      */
     private $executor;
+    
+    /**
+     * @param   string $nameserver Nameserver IP address.
+     *
+     * @return  self
+     */
+    public static function create($nameserver)
+    {
+        return new static(new Executor($nameserver));
+    }
     
     /**
      * @param   ExecutorInterface $executor
@@ -24,18 +35,13 @@ class Resolver implements ResolverInterface
     }
     
     /**
-     * @param   string $domain Domain name to resolve.
-     * @param   int|float $timeout Maximum time until request fails.
-     *
-     * @return  Icicle\Promise\PromiseInterface
-     *
-     * @resolve string Resolved IP address.
-     *
-     * @reject  Icicle\Dns\Query\Execption\FailureException If the server returns a non-zero response code.
-     * @reject  Icicle\Dns\Query\Execption\NotFoundException If the domain cannot be resolved.
+     * @inheritdoc
      */
-    public function resolve($domain, $timeout = ExecutorInterface::DEFAULT_TIMEOUT)
-    {
+    public function resolve(
+        $domain,
+        $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
+        $retries = ExecutorInterface::DEFAULT_RETRIES
+    ) {
         try {
             $query = new Query($domain, ResourceTypes::A);
         } catch (Exception $e) {

@@ -93,7 +93,7 @@ class Query implements QueryInterface
     /**
      * @return  LibDNS\Records\Types\DomainName
      */
-    public function getName()
+    public function getDomain()
     {
         return $this->name;
     }

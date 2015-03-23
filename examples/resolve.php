@@ -8,10 +8,10 @@ use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop\Loop;
 
-$coroutine = Coroutine::call(function ($query, $timeout = 10) {
+$coroutine = Coroutine::call(function ($query, $timeout = 1) {
     echo "Query: {$query}:\n";
     
-    $resolver = new Resolver(new Executor('8.8.8.8'));
+    $resolver = Resolver::create('8.8.8.8');
     
     $ip = (yield $resolver->resolve($query, $timeout));
     

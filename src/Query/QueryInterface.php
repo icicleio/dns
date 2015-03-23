@@ -3,7 +3,7 @@ namespace Icicle\Dns\Query;
 
 interface QueryInterface
 {
-    public function getName();
+    public function getDomain();
     
     public function getType();
     
