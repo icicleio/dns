@@ -14,7 +14,7 @@ $timer = Loop::periodic(0.01, function () { echo "Waiting...\n"; });
 $coroutine = Coroutine::call(function ($domain, $port, $timeout = 1) {
     echo "Connecting to {$domain}...\n";
     
-    $connector = Connector::create('8.8.8.8');
+    $connector = new Connector(new Resolver(new Executor('8.8.8.8')));
     
     $client = (yield $connector->connect($domain, $port, ['cn' => '*.google.com'], $timeout));
     

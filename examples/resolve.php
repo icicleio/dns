@@ -11,7 +11,7 @@ use Icicle\Loop\Loop;
 $coroutine = Coroutine::call(function ($query, $timeout = 1) {
     echo "Query: {$query}:\n";
     
-    $resolver = Resolver::create('8.8.8.8');
+    $resolver = new Resolver(new Executor('8.8.8.8'));
     
     $ip = (yield $resolver->resolve($query, $timeout));
     

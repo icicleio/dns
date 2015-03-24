@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Dns\Query;
 
+use Icicle\Dns\Exception\InvalidTypeException;
 use LibDNS\Records\Types\DomainName;
 use LibDNS\Records\ResourceQTypes;
 

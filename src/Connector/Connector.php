@@ -5,7 +5,8 @@ use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Dns\Resolver\ResolverInterface;
-use Icicle\Socket\Client;
+use Icicle\Socket\Client\Connector as ClientConnector;
+use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
 
 class Connector implements ConnectorInterface
 {
@@ -15,25 +16,22 @@ class Connector implements ConnectorInterface
     private $resolver;
     
     /**
-     * @param   string $nameserver Nameserver IP address.
-     *
-     * @return  self
+     * @var Icicle\Socket\Client\ConnectorInterface
      */
-    public static function create($nameserver)
-    {
-        return new static(
-            new Resolver(
-                new Executor($nameserver)
-            )
-        );
-    }
+    private $connector;
     
     /**
-     * @param   Icicle\Dns\Resolver\ResolverInterface
+     * @param   Icicle\Dns\Resolver\ResolverInterface $resolver
+     * @param   Icicle\Socket\Client\ConnectorInterface $connector
      */
-    public function __construct(ResolverInterface $resolver)
+    public function __construct(ResolverInterface $resolver, ClientConnectorInterface $connector = null)
     {
         $this->resolver = $resolver;
+        
+        $this->connector = $connector;
+        if (null === $this->connector) {
+            $this->connector = new ClientConnector();
+        }
     }
     
     /**
@@ -48,7 +46,7 @@ class Connector implements ConnectorInterface
     ) {
         return $this->resolver->resolve($domain, $timeout, $retries)
             ->then(function ($ip) use ($port, $options) {
-                return Client::connect($ip, $port, $options);
+                return $this->connector->connect($ip, $port, $options);
             });
     }
 }

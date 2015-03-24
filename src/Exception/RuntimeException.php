@@ -1,4 +1,4 @@
 <?php
-namespace Icicle\Dns\Executor\Exception;
+namespace Icicle\Dns\Exception;
 
 class RuntimeException extends \RuntimeException implements ExceptionInterface {}

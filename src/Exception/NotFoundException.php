@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Dns\Executor\Exception;
+namespace Icicle\Dns\Exception;
 
 use Icicle\Dns\Query\QueryInterface;
 

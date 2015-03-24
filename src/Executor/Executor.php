@@ -2,11 +2,11 @@
 namespace Icicle\Dns\Executor;
 
 use Exception;
-use Icicle\Dns\Executor\Exception\FailureException;
-use Icicle\Dns\Executor\Exception\NotFoundException;
+use Icicle\Dns\Exception\FailureException;
+use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Query\QueryInterface;
 use Icicle\Promise\Promise;
-use Icicle\Socket\Client;
+use Icicle\Socket\Client\Connector;
 use Icicle\Socket\Exception\TimeoutException;
 use LibDNS\Messages\MessageFactory;
 use LibDNS\Messages\MessageTypes;
@@ -47,6 +47,8 @@ class Executor implements ExecutorInterface
      */
     private $decoder;
     
+    private $connector;
+    
     /**
      * @param   string $nameserver Nameserver IP address to resolve queries.
      */
@@ -59,18 +61,12 @@ class Executor implements ExecutorInterface
         
         $this->encoder = (new EncoderFactory())->create();
         $this->decoder = (new DecoderFactory())->create();
+        
+        $this->connector = new Connector();
     }
     
     /**
-     * @param   string $domain Domain name to resolve.
-     * @param   int|float $timeout Maximum time until request fails.
-     *
-     * @return  Icicle\Promise\PromiseInterface
-     *
-     * @resolve LibDNS\Records\RecordCollection
-     *
-     * @reject  Icicle\Dns\Executor\Exception\FailureException If the server returns a non-zero response code.
-     * @reject  Icicle\Dns\Executor\Exception\NotFoundException If the domain cannot be resolved.
+     * @inheritdoc
      */
     public function execute(QueryInterface $query, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {
@@ -86,7 +82,7 @@ class Executor implements ExecutorInterface
             $retries = 0;
         }
         
-        return Client::connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL])
+        return $this->connector->connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL])
             ->then(function ($client) use ($request, $timeout, $retries) {
                 $request = $this->encoder->encode($request);
                 

@@ -14,8 +14,8 @@ interface ResolverInterface
      *
      * @resolve string Resolved IP address.
      *
-     * @reject  Icicle\Dns\Excecutor\Execption\FailureException If the server returns a non-zero response code.
-     * @reject  Icicle\Dns\Excecutor\Execption\NotFoundException If the domain cannot be resolved.
+     * @reject  Icicle\Dns\Execption\FailureException If the server returns a non-zero response code.
+     * @reject  Icicle\Dns\Execption\NotFoundException If the domain cannot be resolved.
      */
     public function resolve(
         $domain,

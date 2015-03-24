@@ -1,9 +1,7 @@
 <?php
-namespace Icicle\Dns\Query\Exception;
+namespace Icicle\Dns\Exception;
 
-use Icicle\Dns\Query\QueryInterface;
-
-class NotFoundException extends LogicException
+class InvalidTypeException extends LogicException
 {
     private $type;
     

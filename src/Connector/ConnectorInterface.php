@@ -3,7 +3,7 @@ namespace Icicle\Dns\Connector;
 
 use Icicle\Dns\Executor\ExecutorInterface;
 
-interface ConnectorInterface
+interface ConnectorInterface extends \Icicle\Socket\Client\ConnectorInterface
 {
     /**
      * @param   string $domain Domain name.
@@ -14,12 +14,12 @@ interface ConnectorInterface
      *
      * @return  Icicle\Promise\PromiseInterface
      *
-     * @resolve Icicle\Socket\Client
+     * @resolve Icicle\Socket\ClientInterface
      *
-     * @reject  Icicle\Dns\Excecutor\Execption\FailureException If the server returns a non-zero response code.
-     * @reject  Icicle\Dns\Excecutor\Execption\NotFoundException If the domain cannot be resolved.
+     * @reject  Icicle\Dns\Execption\FailureException If the server returns a non-zero response code.
+     * @reject  Icicle\Dns\Execption\NotFoundException If the domain cannot be resolved.
      *
-     * @see     Icicle\Socket\Client::connect() $options are the same as this method.
+     * @see     Icicle\Socket\Client\Connector::connect() $options are the same as this method.
      */
     public function connect(
         $domain,

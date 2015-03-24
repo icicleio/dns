@@ -9,14 +9,16 @@ interface ExecutorInterface
     const DEFAULT_RETRIES = 5;
     
     /**
-     * @param   Icicle\Dns\Query\QueryInterface
-     * @param   float|int $timeout
+     * @param   Icicle\Dns\Query\QueryInterface $query
+     * @param   float|int $timeout Timeout for each individual request.
      * @param   int $retries Number of times to retry the request until failing.
+     *
+     * @return  Icicle\Promise\PromiseInterface
      *
      * @resolve LibDNS\Records\RecordCollection
      *
-     * @reject  FailureException If the execution fails.
-     * @reject  NotFoundException If a record is not found for the given domain.
+     * @reject  Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
+     * @reject  Icicle\Dns\Exception\NotFoundException If the domain cannot be resolved.
      */
     public function execute(
         QueryInterface $query,

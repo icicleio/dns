@@ -1,4 +1,4 @@
 <?php
-namespace Icicle\Dns\Query\Exception;
+namespace Icicle\Dns\Exception;
 
 interface ExceptionInterface {}

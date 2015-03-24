@@ -17,16 +17,6 @@ class Resolver implements ResolverInterface
     private $executor;
     
     /**
-     * @param   string $nameserver Nameserver IP address.
-     *
-     * @return  self
-     */
-    public static function create($nameserver)
-    {
-        return new static(new Executor($nameserver));
-    }
-    
-    /**
      * @param   ExecutorInterface $executor
      */
     public function __construct(ExecutorInterface $executor)

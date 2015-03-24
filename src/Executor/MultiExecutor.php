@@ -2,7 +2,7 @@
 namespace Icicle\Dns\Executor;
 
 use Exception;
-use Icicle\Dns\Executor\Exception\LogicException;
+use Icicle\Dns\Exception\LogicException;
 use Icicle\Dns\Query\QueryInterface;
 use Icicle\Promise\Promise;
 use SplDoublyLinkedList;
