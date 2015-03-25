@@ -23,7 +23,7 @@ class CachingExecutor implements ExecutorInterface
     public function __construct(ExecutorInterface $executor)
     {
         $this->executor = $executor;
-        $this->queue = new SplPriorityQueue();
+        $this->queue = new \SplPriorityQueue();
         
         $this->timer = Loop::periodic(self::INTERVAL, function () {
             $time = time();
@@ -56,6 +56,7 @@ class CachingExecutor implements ExecutorInterface
                 $ttl = self::MAX_TTL;
                 
                 foreach ($answers as $record) {
+                    /** @var \LibDNS\Records\Resource $record */
                     if (($time = $record->getTTL()) < $ttl) {
                         $ttl = $time;
                     }

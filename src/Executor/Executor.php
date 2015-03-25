@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Dns\Executor;
 
-use Exception;
 use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Query\QueryInterface;
@@ -11,8 +10,6 @@ use Icicle\Socket\Exception\TimeoutException;
 use LibDNS\Messages\MessageFactory;
 use LibDNS\Messages\MessageTypes;
 use LibDNS\Records\QuestionFactory;
-use LibDNS\Records\ResourceQTypes;
-use LibDNS\Records\ResourceTypes;
 use LibDNS\Encoder\EncoderFactory;
 use LibDNS\Decoder\DecoderFactory;
 
@@ -28,22 +25,22 @@ class Executor implements ExecutorInterface
     private $nameserver;
     
     /**
-     * @var LibDNS\Records\QuestionFactory
+     * @var \LibDNS\Records\QuestionFactory
      */
     private $questionFactory;
     
     /**
-     * @var LibDNS\Records\MessageFactory
+     * @var \LibDNS\Messages\MessageFactory
      */
     private $messageFactory;
     
     /**
-     * @var LibDNS\Encoder\Encoder
+     * @var \LibDNS\Encoder\Encoder
      */
     private $encoder;
     
     /**
-     * @var LibDNS\Decoder\Decoder
+     * @var \LibDNS\Decoder\Decoder
      */
     private $decoder;
     
@@ -96,7 +93,7 @@ class Executor implements ExecutorInterface
                         $client->write($request);
                         return $client->read(self::MAX_PACKET_SIZE, $timeout);
                     },
-                    function (Exception $exception) use ($retries) {
+                    function (\Exception $exception) use ($retries) {
                         static $attempt = 0;
                         if (++$attempt > $retries || !$exception instanceof TimeoutException) {
                             return true;

@@ -13,9 +13,11 @@ $coroutine = Coroutine::call(function ($query, $timeout = 1) {
     
     $resolver = new Resolver(new Executor('8.8.8.8'));
     
-    $ip = (yield $resolver->resolve($query, $timeout));
+    $ips = (yield $resolver->resolve($query, $timeout));
     
-    echo "IP: {$ip}\n";
+    foreach ($ips as $ip) {
+        echo "IP: {$ip}\n";
+    }
 }, 'www.icicle.io');
 
 $coroutine->capture(function (Exception $e) {

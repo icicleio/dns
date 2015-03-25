@@ -10,12 +10,12 @@ interface ResolverInterface
      * @param   int|float $timeout Time until a request fails
      * @param   int $retries Number of times to retry the request until failing.
      *
-     * @return  Icicle\Promise\PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
-     * @resolve string Resolved IP address.
+     * @resolve string[] List of IP address. Will always contain at least one IP, otherwise the promise is rejected.
      *
-     * @reject  Icicle\Dns\Execption\FailureException If the server returns a non-zero response code.
-     * @reject  Icicle\Dns\Execption\NotFoundException If the domain cannot be resolved.
+     * @reject  \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
+     * @reject  \Icicle\Dns\Exception\NotFoundException If the domain cannot be resolved.
      */
     public function resolve(
         $domain,

@@ -1,16 +1,14 @@
 <?php
 namespace Icicle\Dns\Executor;
 
-use Exception;
 use Icicle\Dns\Exception\LogicException;
 use Icicle\Dns\Query\QueryInterface;
 use Icicle\Promise\Promise;
-use SplDoublyLinkedList;
 
 class MultiExecutor implements ExecutorInterface
 {
     /**
-     * @var SplDoublyLinkedList
+     * @var \SplDoublyLinkedList
      */
     private $executors;
     
@@ -18,11 +16,11 @@ class MultiExecutor implements ExecutorInterface
      */
     public function __construct()
     {
-        $this->executors = new SplDoublyLinkedList();
+        $this->executors = new \SplDoublyLinkedList();
     }
     
     /**
-     * @param   Icicle\Dns\ExecutorInterface
+     * @param   \Icicle\Dns\ExecutorInterface
      */
     public function add(ExecutorInterface $executor)
     {
@@ -51,7 +49,7 @@ class MultiExecutor implements ExecutorInterface
                 $executor = $executors->bottom();
                 return $executor->execute($query, $timeout, 0);
             },
-            function (Exception $exception) use ($executors, $count, $retries) {
+            function (\Exception $exception) use ($executors, $count, $retries) {
                 static $attempt = 0;
                 
                 // Shift executor to end of list for this request.

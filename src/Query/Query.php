@@ -49,7 +49,7 @@ class Query implements QueryInterface
     ];
     
     /**
-     * @var LibDNS\Records\Types\DomainName
+     * @var \LibDNS\Records\Types\DomainName
      */
     private $name;
     
@@ -70,8 +70,8 @@ class Query implements QueryInterface
      * @param   string $name Domain name.
      * @param   string $type Query type, such as 'A', 'AAAA', 'MX', etc.
      *
-     * @throws  Icicle\Dns\Query\Exception\InvalidTypeException If the given type is invalid.
-     * @throws  UnexpectedValueException If the given name is not a valid domain name.
+     * @throws  \Icicle\Dns\Exception\InvalidTypeException If the given type is invalid.
+     * @throws  \UnexpectedValueException If the given name is not a valid domain name.
      */
     public function __construct($name, $type)
     {
@@ -92,7 +92,7 @@ class Query implements QueryInterface
     }
     
     /**
-     * @return  LibDNS\Records\Types\DomainName
+     * @inheritdoc
      */
     public function getDomain()
     {
@@ -100,7 +100,7 @@ class Query implements QueryInterface
     }
     
     /**
-     * @return  string
+     * @inheritdoc
      */
     public function getTypeName()
     {
@@ -108,7 +108,7 @@ class Query implements QueryInterface
     }
     
     /**
-     * @return  int
+     * @inheritdoc
      */
     public function getType()
     {

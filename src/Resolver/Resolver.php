@@ -1,23 +1,22 @@
 <?php
 namespace Icicle\Dns\Resolver;
 
-use Exception;
-use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Query\Query;
 use Icicle\Promise\Promise;
 use LibDNS\Records\RecordCollection;
-use LibDNS\Records\ResourceTypes;
+use LibDNS\Records\ResourceQTypes;
 
 class Resolver implements ResolverInterface
 {
     /**
-     * @var ExecutorInterface
+     * @var \Icicle\Dns\Executor\ExecutorInterface
      */
     private $executor;
     
     /**
-     * @param   ExecutorInterface $executor
+     * @param   \Icicle\Dns\Executor\ExecutorInterface $executor
      */
     public function __construct(ExecutorInterface $executor)
     {
@@ -33,26 +32,28 @@ class Resolver implements ResolverInterface
         $retries = ExecutorInterface::DEFAULT_RETRIES
     ) {
         try {
-            $query = new Query($domain, ResourceTypes::A);
-        } catch (Exception $e) {
+            $query = new Query($domain, ResourceQTypes::A);
+        } catch (\Exception $exception) {
             return Promise::reject($exception);
         }
         
         return $this->executor->execute($query, $timeout)
-            ->then(function (RecordCollection $answers) {
-                foreach (clone $answers as $record) {
-                    if (ResourceTypes::CNAME === $record->getType()) {
-                        $answers->remove($record);
+            ->then(function (RecordCollection $answers) use ($query) {
+                $result = [];
+                $type = $query->getType();
+                foreach ($answers as $record) {
+                    // Skip any CNAME or other records returned in result.
+                    if ($record->getType() === $type) {
+                        /** @var \LibDNS\Records\Resource $record */
+                        $result[] = $record->getData();
                     }
                 }
-                
-                $count = count($answers);
-                
-                if (1 < $count) {
-                    return $answers->getRecordByIndex(mt_rand(0, $count - 1))->getData();
+
+                if (0 === count($result)) {
+                    throw new NotFoundException($query);
                 }
-                
-                return $answers->getRecordByIndex(0)->getData();
+
+                return $result;
             });
     }
 }
