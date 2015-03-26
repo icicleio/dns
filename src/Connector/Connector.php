@@ -43,6 +43,8 @@ class Connector implements ConnectorInterface
         $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
         $retries = ExecutorInterface::DEFAULT_RETRIES
     ) {
+        $options = array_merge(['name' => $domain], $options);
+
         return $this->resolver->resolve($domain, $timeout, $retries)
             ->then(function (array $ips) use ($port, $options) {
                 $count = count($ips);

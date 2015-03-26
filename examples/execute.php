@@ -21,9 +21,9 @@ $coroutine = Coroutine::call(function ($query, $timeout = ExecutorInterface::DEF
     $answers = (yield $executor->execute(new Query($query, 'A'), $timeout));
     
     foreach ($answers as $record) {
-        echo "Result: ({$record->getType()}) {$record->getTTL()} {$record->getData()}\n";
+        echo "Result: Type:{$record->getType()} TTL:{$record->getTTL()} {$record->getData()}\n";
     }
-}, 'www.google.com');
+}, 'google.com');
 
 $coroutine->capture(function (Exception $e) {
     echo "Exception: {$e->getMessage()}\n";

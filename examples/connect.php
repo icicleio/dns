@@ -16,7 +16,7 @@ $coroutine = Coroutine::call(function ($domain, $port, $timeout = 1) {
     
     $connector = new Connector(new Resolver(new Executor('8.8.8.8')));
     
-    $client = (yield $connector->connect($domain, $port, ['cn' => '*.google.com'], $timeout));
+    $client = (yield $connector->connect($domain, $port, ['name' => '*.google.com'], $timeout));
     
     echo "Enabling crypto...\n";
     
