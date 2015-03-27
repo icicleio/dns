@@ -57,12 +57,8 @@ class MultiExecutor implements ExecutorInterface
                 
                 // Shift executor to end of list for future requests.
                 $this->executors->push($this->executors->shift());
-                
-                if (floor(++$attempt / $count) > $retries) {
-                    return true;
-                }
-                
-                return false;
+
+                return floor(++$attempt / $count) <= $retries;
             }
         );
     }

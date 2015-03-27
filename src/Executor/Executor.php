@@ -5,6 +5,7 @@ use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Query\QueryInterface;
 use Icicle\Promise\Promise;
+use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Client\Connector;
 use Icicle\Socket\Exception\TimeoutException;
 use LibDNS\Messages\MessageFactory;
@@ -80,7 +81,7 @@ class Executor implements ExecutorInterface
         }
         
         return $this->connector->connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL])
-            ->then(function ($client) use ($request, $timeout, $retries) {
+            ->then(function (ClientInterface $client) use ($request, $timeout, $retries) {
                 $request = $this->encoder->encode($request);
                 
                 if (0 === $retries) {

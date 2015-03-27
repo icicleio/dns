@@ -43,7 +43,8 @@ class Connector implements ConnectorInterface
         $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
         $retries = ExecutorInterface::DEFAULT_RETRIES
     ) {
-        $options = array_merge(['name' => $domain], $options);
+        $default = ['name' => $domain];
+        $options = is_array($options) ? array_merge($default, $options) : $default;
 
         return $this->resolver->resolve($domain, $timeout, $retries)
             ->then(function (array $ips) use ($port, $options) {
@@ -58,7 +59,7 @@ class Connector implements ConnectorInterface
                         return $this->connector->connect($ips[$current], $port, $options);
                     },
                     function (\Exception $exception) use (&$current, $count) {
-                        return ++$current >= $count;
+                        return ++$current < $count;
                     }
                 );
             });

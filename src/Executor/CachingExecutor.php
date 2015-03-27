@@ -14,30 +14,14 @@ class CachingExecutor implements ExecutorInterface
     
     private $cache = [];
     
-    private $queue;
-    
     private $executor;
     
-    private $timer;
+    private $callback;
     
     public function __construct(ExecutorInterface $executor)
     {
         $this->executor = $executor;
-        $this->queue = new \SplPriorityQueue();
-        
-        $this->timer = Loop::periodic(self::INTERVAL, function () {
-            $time = time();
-            
-            while (!$this->queue->isEmpty()) {
-                $entry = $this->queue->top();
-                if ($time < $entry['time']) {
-                    return;
-                }
-                unset($this->cache[$entry['name']][$entry['type']]);
-                $this->queue->extract();
-            }
-        });
-        $this->timer->unreference();
+        $this->callback = $this->createCallback();
     }
     
     public function execute(QueryInterface $query, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
@@ -61,10 +45,16 @@ class CachingExecutor implements ExecutorInterface
                         $ttl = $time;
                     }
                 }
-                
-                $time = time() + $ttl;
-                
-                $this->queue->insert(['name' => $name, 'type' => $type, 'time' => $time], -$time);
+
+                $timer = Loop::timer($ttl, $this->callback, $name, $type);
+                $timer->unreference();
             });
+    }
+
+    protected function createCallback()
+    {
+        return function ($name, $type) {
+            unset($this->cache[$name][$type]);
+        };
     }
 }
