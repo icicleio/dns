@@ -9,7 +9,7 @@ class NotFoundException extends RuntimeException
     
     public function __construct(QueryInterface $query)
     {
-        parent::__construct("Could not find {$query->getTypeName()} record for {$query->getName()}.");
+        parent::__construct("Could not find {$query->getTypeName()} record for {$query->getDomain()}.");
         
         $this->query = $query;
     }

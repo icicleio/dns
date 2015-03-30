@@ -1,11 +1,10 @@
 <?php
 namespace Icicle\Dns\Executor;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Query\QueryInterface;
-use Icicle\Promise\Promise;
-use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Client\Connector;
 use Icicle\Socket\Exception\TimeoutException;
 use LibDNS\Messages\MessageFactory;
@@ -68,55 +67,66 @@ class Executor implements ExecutorInterface
      */
     public function execute(QueryInterface $query, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {
-        $question = $this->questionFactory->create($query->getType());
-        $question->setName($query->getDomain());
-        
-        $request = $this->messageFactory->create(MessageTypes::QUERY);
-        $request->getQuestionRecords()->add($question);
-        $request->isRecursionDesired(true);
-        
         $retries = (int) $retries;
         if (0 > $retries) {
             $retries = 0;
         }
-        
-        return $this->connector->connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL])
-            ->then(function (ClientInterface $client) use ($request, $timeout, $retries) {
-                $request = $this->encoder->encode($request);
-                
-                if (0 === $retries) {
-                    $client->write($request);
-                    return $client->read(self::MAX_PACKET_SIZE, $timeout);
-                }
-                
-                return Promise::retry(
-                    function () use ($client, $request, $timeout) {
-                        $client->write($request);
-                        return $client->read(self::MAX_PACKET_SIZE, $timeout);
-                    },
-                    function (\Exception $exception) use ($retries) {
-                        static $attempt = 0;
-                        if (++$attempt > $retries || !$exception instanceof TimeoutException) {
-                            return true;
-                        }
-                        return false;
-                    }
+
+        return new Coroutine($this->run($query, $timeout, $retries));
+    }
+
+    /**
+     * @coroutine
+     *
+     * @param   \Icicle\Dns\Query\QueryInterface $query
+     * @param   float|int $timeout
+     * @param   int $retries
+     *
+     * @return  \Generator
+     *
+     * @resolve \LibDNS\Records\RecordCollection
+     */
+    protected function run(QueryInterface $query, $timeout, $retries)
+    {
+        $question = $this->questionFactory->create($query->getType());
+        $question->setName($query->getDomain());
+
+        $request = $this->messageFactory->create(MessageTypes::QUERY);
+        $request->getQuestionRecords()->add($question);
+        $request->isRecursionDesired(true);
+
+        /** @var \Icicle\Socket\Client\ClientInterface $client */
+        $client = (yield $this->connector->connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL]));
+
+        $request = $this->encoder->encode($request);
+
+        $attempt = 0;
+
+        do {
+            try {
+                $client->write($request);
+
+                $response = $this->decoder->decode(
+                    yield $client->read(self::MAX_PACKET_SIZE, null, $timeout)
                 );
-            })
-            ->then(function ($data) use ($query) {
-                $response = $this->decoder->decode($data);
-                
+
                 if (0 !== $response->getResponseCode()) {
                     throw new FailureException("Server returned response code {$response->getResponseCode()}.");
                 }
-                
+
                 $answers = $response->getAnswerRecords();
-                
+
                 if (0 === count($answers)) {
                     throw new NotFoundException($query);
                 }
-                
-                return $answers;
-            });
+
+                yield $answers;
+                return;
+            } catch (TimeoutException $exception) {
+                // Ignore TimeoutException and try the request again.
+            }
+        } while ($attempt++ < $retries);
+
+        throw new FailureException('Server did not respond to query.');
     }
 }

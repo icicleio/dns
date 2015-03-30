@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "dev-development",
+        "icicleio/icicle": "0.2.*",
         "daverandom/libdns": "~1"
     },
     "autoload": {
