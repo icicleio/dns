@@ -6,6 +6,7 @@ use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Query\QueryInterface;
 use Icicle\Socket\Client\Connector;
+use Icicle\Socket\Client\ConnectorInterface;
 use Icicle\Socket\Exception\TimeoutException;
 use LibDNS\Messages\MessageFactory;
 use LibDNS\Messages\MessageTypes;
@@ -43,13 +44,17 @@ class Executor implements ExecutorInterface
      * @var \LibDNS\Decoder\Decoder
      */
     private $decoder;
-    
+
+    /**
+     * @var \Icicle\Socket\Client\ConnectorInterface
+     */
     private $connector;
     
     /**
      * @param   string $nameserver Nameserver IP address to resolve queries.
+     * @param   \Icicle\Socket\Client\ConnectorInterface|null $connector
      */
-    public function __construct($nameserver)
+    public function __construct($nameserver, ConnectorInterface $connector = null)
     {
         $this->nameserver = $nameserver;
         
@@ -58,8 +63,12 @@ class Executor implements ExecutorInterface
         
         $this->encoder = (new EncoderFactory())->create();
         $this->decoder = (new DecoderFactory())->create();
-        
-        $this->connector = new Connector();
+
+        $this->connector = $connector;
+
+        if (null === $this->connector) {
+            $this->connector = new Connector();
+        }
     }
     
     /**
@@ -76,6 +85,16 @@ class Executor implements ExecutorInterface
     }
 
     /**
+     * IP address of the nameserver used by this executor.
+     *
+     * @return string
+     */
+    public function getNameServer()
+    {
+        return $this->nameserver;
+    }
+
+    /**
      * @coroutine
      *
      * @param   \Icicle\Dns\Query\QueryInterface $query
@@ -85,20 +104,17 @@ class Executor implements ExecutorInterface
      * @return  \Generator
      *
      * @resolve \LibDNS\Records\RecordCollection
+     *
+     * @reject  \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
+     *          not respond at all.
+     * @reject  \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
      */
     protected function run(QueryInterface $query, $timeout, $retries)
     {
-        $question = $this->questionFactory->create($query->getType());
-        $question->setName($query->getDomain());
-
-        $request = $this->messageFactory->create(MessageTypes::QUERY);
-        $request->getQuestionRecords()->add($question);
-        $request->isRecursionDesired(true);
-
         /** @var \Icicle\Socket\Client\ClientInterface $client */
-        $client = (yield $this->connector->connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL]));
+        $client = (yield $this->connect());
 
-        $request = $this->encoder->encode($request);
+        $request = $this->encoder->encode($this->createRequest($query));
 
         $attempt = 0;
 
@@ -128,5 +144,32 @@ class Executor implements ExecutorInterface
         } while ($attempt++ < $retries);
 
         throw new FailureException('Server did not respond to query.');
+    }
+
+    /**
+     * @param   \Icicle\Dns\Query\QueryInterface $query
+     *
+     * @return  \LibDNS\Messages\Message
+     */
+    protected function createRequest(QueryInterface $query)
+    {
+        $question = $this->questionFactory->create($query->getType());
+        $question->setName($query->getDomain());
+
+        $request = $this->messageFactory->create(MessageTypes::QUERY);
+        $request->getQuestionRecords()->add($question);
+        $request->isRecursionDesired(true);
+
+        return $request;
+    }
+
+    /**
+     * @return  \Icicle\Promise\PromiseInterface
+     *
+     * @see     \Icicle\Socket\Client\ConnectorInterface::connect()
+     */
+    protected function connect()
+    {
+        return $this->connector->connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL]);
     }
 }
