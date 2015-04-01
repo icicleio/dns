@@ -1,9 +1,10 @@
 <?php
 namespace Icicle\Dns\Executor;
 
+use Icicle\Coroutine\Coroutine;
+use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\LogicException;
 use Icicle\Dns\Query\QueryInterface;
-use Icicle\Promise\Promise;
 
 class MultiExecutor implements ExecutorInterface
 {
@@ -20,7 +21,7 @@ class MultiExecutor implements ExecutorInterface
     }
     
     /**
-     * @param   \Icicle\Dns\ExecutorInterface
+     * @param   \Icicle\Dns\Executor\ExecutorInterface
      */
     public function add(ExecutorInterface $executor)
     {
@@ -32,34 +33,56 @@ class MultiExecutor implements ExecutorInterface
      */
     public function execute(QueryInterface $query, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {
-        if ($this->executors->isEmpty()) {
-            return Promise::reject(new LogicException('No executors defined.'));
-        }
-        
         $retries = (int) $retries;
         if (0 > $retries) {
             $retries = 0;
         }
         
+        return new Coroutine($this->run($query, $timeout, $retries));
+    }
+
+    /**
+     * @param   \Icicle\Dns\Query\QueryInterface $query
+     * @param   $timeout
+     * @param   $retries
+     *
+     * @return  \Generator
+     *
+     * @resolve \LibDNS\Records\RecordCollection
+     *
+     * @reject  \Icicle\Dns\Exception\FailureException If no servers respond to the query.
+     * @reject  \Icicle\Dns\Exception\NotFoundException If no record of the given type is found for the domain.
+     */
+    protected function run(QueryInterface $query, $timeout, $retries)
+    {
+        if ($this->executors->isEmpty()) {
+            throw new LogicException('No executors defined.');
+        }
+
         $executors = clone $this->executors;
         $count = count($executors);
-        
-        return Promise::retry(
-            function () use ($executors, $query, $timeout) {
-                $executor = $executors->bottom();
-                return $executor->execute($query, $timeout, 0);
-            },
-            function (\Exception $exception) use ($executors, $count, $retries) {
-                static $attempt = 0;
-                
-                // Shift executor to end of list for this request.
-                $executors->push($executors->shift());
-                
-                // Shift executor to end of list for future requests.
-                $this->executors->push($this->executors->shift());
 
-                return floor(++$attempt / $count) <= $retries;
+        $retries = ($retries + 1) * $count;
+
+        $attempt = 0;
+
+        do {
+            $executor = $executors->shift();
+
+            try {
+                yield $executor->execute($query, $timeout, 0);
+                return;
+            } catch (FailureException $exception) {
+                // Push executor to the end of the list for this request.
+                $executors->push($executor);
+
+                // If it is still at the head, shift executor in main list to the tail for future requests.
+                if ($this->executors->bottom() === $executor) {
+                    $this->executors->push($this->executors->shift());
+                }
             }
-        );
+        } while (++$attempt < $retries);
+
+        throw new FailureException('No DNS servers responded to the query.');
     }
 }

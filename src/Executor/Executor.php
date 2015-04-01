@@ -141,7 +141,7 @@ class Executor implements ExecutorInterface
             } catch (TimeoutException $exception) {
                 // Ignore TimeoutException and try the request again.
             }
-        } while ($attempt++ < $retries);
+        } while (++$attempt <= $retries);
 
         throw new FailureException('Server did not respond to query.');
     }
