@@ -3,8 +3,14 @@ namespace Icicle\Dns\Exception;
 
 class InvalidTypeException extends LogicException
 {
+    /**
+     * @var int|string
+     */
     private $type;
-    
+
+    /**
+     * @param   int|string $type
+     */
     public function __construct($type)
     {
         if (is_int($type)) {
@@ -17,7 +23,10 @@ class InvalidTypeException extends LogicException
         
         $this->type = $type;
     }
-    
+
+    /**
+     * @return  int|string
+     */
     public function getType()
     {
         return $this->type;

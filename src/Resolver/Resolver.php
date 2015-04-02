@@ -1,11 +1,10 @@
 <?php
 namespace Icicle\Dns\Resolver;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Query\Query;
-use Icicle\Promise\Promise;
-use LibDNS\Records\RecordCollection;
 use LibDNS\Records\ResourceQTypes;
 
 class Resolver implements ResolverInterface
@@ -31,29 +30,37 @@ class Resolver implements ResolverInterface
         $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
         $retries = ExecutorInterface::DEFAULT_RETRIES
     ) {
-        try {
-            $query = new Query($domain, ResourceQTypes::A);
-        } catch (\Exception $exception) {
-            return Promise::reject($exception);
+        return new Coroutine($this->run($domain, $timeout, $retries));
+    }
+
+    /**
+     * @param   string $domain
+     * @param   float|int $timeout
+     * @param   int $retries
+     *
+     * @return  \Generator
+     */
+    protected function run($domain, $timeout, $retries)
+    {
+        $query = new Query($domain, ResourceQTypes::A);
+
+        $answers = (yield $this->executor->execute($query, $timeout, $retries));
+
+        $result = [];
+        $type = $query->getType();
+
+        foreach ($answers as $record) {
+            /** @var \LibDNS\Records\Resource $record */
+            // Skip any CNAME or other records returned in result.
+            if ($record->getType() === $type) {
+                $result[] = $record->getData();
+            }
         }
-        
-        return $this->executor->execute($query, $timeout)
-            ->then(function (RecordCollection $answers) use ($query) {
-                $result = [];
-                $type = $query->getType();
-                foreach ($answers as $record) {
-                    // Skip any CNAME or other records returned in result.
-                    if ($record->getType() === $type) {
-                        /** @var \LibDNS\Records\Resource $record */
-                        $result[] = $record->getData();
-                    }
-                }
 
-                if (0 === count($result)) {
-                    throw new NotFoundException($query);
-                }
+        if (0 === count($result)) {
+            throw new NotFoundException($query);
+        }
 
-                return $result;
-            });
+        yield $result;
     }
 }

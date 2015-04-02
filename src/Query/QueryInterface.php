@@ -9,12 +9,7 @@ interface QueryInterface
     public function getDomain();
 
     /**
-     * @return  string
-     */
-    public function getType();
-
-    /**
      * @return  int
      */
-    public function getTypeName();
+    public function getType();
 }

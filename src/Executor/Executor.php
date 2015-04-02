@@ -17,14 +17,19 @@ use LibDNS\Decoder\DecoderFactory;
 class Executor implements ExecutorInterface
 {
     const PROTOCOL = 'udp';
-    const PORT = 53;
+    const DEFAULT_PORT = 53;
     const MAX_PACKET_SIZE = 512;
     
     /**
      * @var string IP address of DNS server.
      */
-    private $nameserver;
-    
+    private $address;
+
+    /**
+     * @var int
+     */
+    private $port;
+
     /**
      * @var \LibDNS\Records\QuestionFactory
      */
@@ -51,12 +56,14 @@ class Executor implements ExecutorInterface
     private $connector;
     
     /**
-     * @param   string $nameserver Nameserver IP address to resolve queries.
+     * @param   string $address Nameserver IP address to resolve queries.
+     * @param   int $port
      * @param   \Icicle\Socket\Client\ConnectorInterface|null $connector
      */
-    public function __construct($nameserver, ConnectorInterface $connector = null)
+    public function __construct($address, $port = self::DEFAULT_PORT, ConnectorInterface $connector = null)
     {
-        $this->nameserver = $nameserver;
+        $this->address = $address;
+        $this->port = $port;
         
         $this->questionFactory = new QuestionFactory();
         $this->messageFactory = new MessageFactory();
@@ -89,9 +96,14 @@ class Executor implements ExecutorInterface
      *
      * @return string
      */
-    public function getNameServer()
+    public function getAddress()
     {
-        return $this->nameserver;
+        return $this->address;
+    }
+
+    public function getPort()
+    {
+        return $this->port;
     }
 
     /**
@@ -170,6 +182,6 @@ class Executor implements ExecutorInterface
      */
     protected function connect()
     {
-        return $this->connector->connect($this->nameserver, self::PORT, ['protocol' => self::PROTOCOL]);
+        return $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]);
     }
 }
