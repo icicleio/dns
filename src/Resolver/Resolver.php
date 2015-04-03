@@ -47,7 +47,7 @@ class Resolver implements ResolverInterface
         $answers = (yield $this->executor->execute($query, $timeout, $retries));
 
         $result = [];
-        $type = $query->getType();
+        $type = $query->getQuestion()->getType();
 
         foreach ($answers as $record) {
             /** @var \LibDNS\Records\Resource $record */

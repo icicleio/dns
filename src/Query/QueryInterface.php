@@ -4,12 +4,7 @@ namespace Icicle\Dns\Query;
 interface QueryInterface
 {
     /**
-     * @return  \LibDNS\Records\Types\DomainName
+     * @return  \LibDNS\Records\Question
      */
-    public function getDomain();
-
-    /**
-     * @return  int
-     */
-    public function getType();
+    public function getQuestion();
 }

@@ -2,57 +2,46 @@
 namespace Icicle\Dns\Query;
 
 use Icicle\Dns\Exception\InvalidTypeException;
-use LibDNS\Records\Types\DomainName;
+use LibDNS\Records\QuestionFactory;
 
 class Query implements QueryInterface
 {
     /**
-     * @var \LibDNS\Records\Types\DomainName
+     * @var \LibDNS\Records\Question
      */
-    private $name;
-    
-    /**
-     * @var int
-     */
-    private $type;
+    private $question;
 
     /**
      * @param   string $name Domain name.
-     * @param   string $type Query type, such as 'A', 'AAAA', 'MX', etc.
+     * @param   string|int $type Query type, such as 'A', 'AAAA', 'MX', etc. or integer (see ResourceQTypes constants)
      *
      * @throws  \Icicle\Dns\Exception\InvalidTypeException If the given type is invalid.
      * @throws  \UnexpectedValueException If the given name is not a valid domain name.
+     *
+     * @see     \LibDNS\Records\ResourceQTypes
      */
     public function __construct($name, $type)
     {
-        if (is_int($type)) {
-            $this->type = $type;
-        } else {
+        if (!is_int($type)) {
             $type = strtoupper($type);
-            // Error reporting suppressed since constant() emits an E_WARNING if constant not found, checked below.
+            // Error reporting suppressed since constant() emits an E_WARNING if constant not found.
+            // Check for null === $value handles error.
             $value = @constant('\LibDNS\Records\ResourceQTypes::'.$type);
             if (null === $value) {
                 throw new InvalidTypeException($type);
             }
-            $this->type = $value;
+            $type = $value;
         }
-        
-        $this->name = new DomainName($name);
+
+        $this->question = (new QuestionFactory())->create($type);
+        $this->question->setName($name);
     }
-    
+
     /**
-     * @inheritdoc
+     * @return  \LibDNS\Records\Question
      */
-    public function getDomain()
+    public function getQuestion()
     {
-        return $this->name;
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function getType()
-    {
-        return $this->type;
+        return $this->question;
     }
 }

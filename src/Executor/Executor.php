@@ -31,11 +31,6 @@ class Executor implements ExecutorInterface
     private $port;
 
     /**
-     * @var \LibDNS\Records\QuestionFactory
-     */
-    private $questionFactory;
-    
-    /**
      * @var \LibDNS\Messages\MessageFactory
      */
     private $messageFactory;
@@ -65,7 +60,6 @@ class Executor implements ExecutorInterface
         $this->address = $address;
         $this->port = $port;
         
-        $this->questionFactory = new QuestionFactory();
         $this->messageFactory = new MessageFactory();
         
         $this->encoder = (new EncoderFactory())->create();
@@ -94,13 +88,16 @@ class Executor implements ExecutorInterface
     /**
      * IP address of the nameserver used by this executor.
      *
-     * @return string
+     * @return  string
      */
     public function getAddress()
     {
         return $this->address;
     }
 
+    /**
+     * @return  int
+     */
     public function getPort()
     {
         return $this->port;
@@ -165,11 +162,8 @@ class Executor implements ExecutorInterface
      */
     protected function createRequest(QueryInterface $query)
     {
-        $question = $this->questionFactory->create($query->getType());
-        $question->setName($query->getDomain());
-
         $request = $this->messageFactory->create(MessageTypes::QUERY);
-        $request->getQuestionRecords()->add($question);
+        $request->getQuestionRecords()->add($query->getQuestion());
         $request->isRecursionDesired(true);
 
         return $request;

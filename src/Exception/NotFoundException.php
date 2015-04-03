@@ -15,7 +15,9 @@ class NotFoundException extends RuntimeException
      */
     public function __construct(QueryInterface $query)
     {
-        parent::__construct("Record of type {$query->getType()} not found for {$query->getDomain()}.");
+        $question = $query->getQuestion();
+
+        parent::__construct("Record of type {$question->getType()} not found for {$question->getName()}.");
         
         $this->query = $query;
     }
