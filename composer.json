@@ -16,13 +16,14 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "0.2.*",
+        "icicleio/icicle": "dev-development",
         "daverandom/libdns": "~1"
     },
     "require-dev": {
         "phpunit/phpunit": "4.0.*",
         "satooshi/php-coveralls": "dev-master"
     },
+    "minimum-stability" : "dev",
     "autoload": {
         "psr-4": {
             "Icicle\\Dns\\": "src"
