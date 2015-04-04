@@ -4,7 +4,7 @@ namespace Icicle\Dns\Resolver;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Dns\Query\Query;
+use Icicle\Promise\Promise;
 use LibDNS\Records\ResourceQTypes;
 
 class Resolver implements ResolverInterface
@@ -30,6 +30,10 @@ class Resolver implements ResolverInterface
         $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
         $retries = ExecutorInterface::DEFAULT_RETRIES
     ) {
+        if (strtolower($domain) === 'localhost') {
+            return Promise::resolve(['127.0.0.1']);
+        }
+
         return new Coroutine($this->run($domain, $timeout, $retries));
     }
 
@@ -42,23 +46,23 @@ class Resolver implements ResolverInterface
      */
     protected function run($domain, $timeout, $retries)
     {
-        $query = new Query($domain, ResourceQTypes::A);
+        /** @var \LibDNS\Messages\Message $response */
+        $response = (yield $this->executor->execute($domain, ResourceQTypes::A, $timeout, $retries));
 
-        $answers = (yield $this->executor->execute($query, $timeout, $retries));
+        $answers = $response->getAnswerRecords();
 
         $result = [];
-        $type = $query->getQuestion()->getType();
 
+        /** @var \LibDNS\Records\Resource $record */
         foreach ($answers as $record) {
-            /** @var \LibDNS\Records\Resource $record */
             // Skip any CNAME or other records returned in result.
-            if ($record->getType() === $type) {
-                $result[] = $record->getData();
+            if ($record->getType() === ResourceQTypes::A) {
+                $result[] = $record->getData()->getField(0)->getValue();
             }
         }
 
         if (0 === count($result)) {
-            throw new NotFoundException($query);
+            throw new NotFoundException($domain, ResourceQTypes::A);
         }
 
         yield $result;

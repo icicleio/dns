@@ -1,32 +1,43 @@
 <?php
 namespace Icicle\Dns\Exception;
 
-use Icicle\Dns\Query\QueryInterface;
-
 class NotFoundException extends RuntimeException
 {
     /**
-     * @var \Icicle\Dns\Query\QueryInterface
+     * @var string
      */
-    private $query;
+    private $name;
 
     /**
-     * @param   \Icicle\Dns\Query\QueryInterface $query
+     * @var int
      */
-    public function __construct(QueryInterface $query)
-    {
-        $question = $query->getQuestion();
+    private $type;
 
-        parent::__construct("Record of type {$question->getType()} not found for {$question->getName()}.");
-        
-        $this->query = $query;
+    /**
+     * @param   string $name
+     * @param   int $type
+     */
+    public function __construct($name, $type)
+    {
+        parent::__construct("Record of type {$type} not found for {$name}.");
+
+        $this->name = $name;
+        $this->type = $type;
     }
 
     /**
-     * @return  \Icicle\Dns\Query\QueryInterface
+     * @return  string Domain name.
      */
-    public function getQuery()
+    public function getName()
     {
-        return $this->query;
+        return $this->name;
+    }
+
+    /**
+     * @return  int
+     */
+    public function getType()
+    {
+        return $this->type;
     }
 }

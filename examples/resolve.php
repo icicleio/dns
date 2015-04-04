@@ -8,6 +8,12 @@ use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop\Loop;
 
+if (2 > $argc) {
+    throw new InvalidArgumentException('Too few arguments provided. Usage: {DomainName}');
+}
+
+$domain = $argv[1];
+
 $coroutine = Coroutine::call(function ($query, $timeout = 1) {
     echo "Query: {$query}:\n";
     
@@ -18,7 +24,7 @@ $coroutine = Coroutine::call(function ($query, $timeout = 1) {
     foreach ($ips as $ip) {
         echo "IP: {$ip}\n";
     }
-}, 'www.icicle.io');
+}, $domain);
 
 $coroutine->capture(function (Exception $e) {
     echo "Exception: {$e->getMessage()}\n";

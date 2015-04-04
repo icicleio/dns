@@ -2,9 +2,9 @@
 namespace Icicle\Dns\Executor;
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\LogicException;
-use Icicle\Dns\Query\QueryInterface;
+use Icicle\Dns\Exception\MessageException;
+use Icicle\Dns\Exception\NoResponseException;
 
 class MultiExecutor implements ExecutorInterface
 {
@@ -31,29 +31,35 @@ class MultiExecutor implements ExecutorInterface
     /**
      * @inheritdoc
      */
-    public function execute(QueryInterface $query, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
+    public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {
         $retries = (int) $retries;
         if (0 > $retries) {
             $retries = 0;
         }
         
-        return new Coroutine($this->run($query, $timeout, $retries));
+        return new Coroutine($this->run($name, $type, $timeout, $retries));
     }
 
     /**
-     * @param   \Icicle\Dns\Query\QueryInterface $query
-     * @param   $timeout
-     * @param   $retries
+     * @coroutine
+     *
+     * @param   string $name Domain name.
+     * @param   string|int $type Record type (e.g., 'A', 'MX', 'AAAA', 'NS' or integer value of type)
+     * @param   float|int $timeout Seconds until a request times out.
+     * @param   int $retries Number of times to attempt the request.
      *
      * @return  \Generator
      *
-     * @resolve \LibDNS\Records\RecordCollection
+     * @resolve \LibDNS\Messages\Message
      *
-     * @reject  \Icicle\Dns\Exception\FailureException If no servers respond to the query.
-     * @reject  \Icicle\Dns\Exception\NotFoundException If no record of the given type is found for the domain.
+     * @reject  \Icicle\Dns\Exception\LogicException If no executors are defined.
+     * @reject  \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
+     *          not respond at all.
+     * @reject  \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
+     * @reject  \Icicle\Dns\Exception\NoResponseException If no response is received from any server.
      */
-    protected function run(QueryInterface $query, $timeout, $retries)
+    protected function run($name, $type, $timeout, $retries)
     {
         if ($this->executors->isEmpty()) {
             throw new LogicException('No executors defined.');
@@ -70,9 +76,9 @@ class MultiExecutor implements ExecutorInterface
             $executor = $executors->shift();
 
             try {
-                yield $executor->execute($query, $timeout, 0);
+                yield $executor->execute($name, $type, $timeout, 0);
                 return;
-            } catch (FailureException $exception) {
+            } catch (MessageException $exception) {
                 // Push executor to the end of the list for this request.
                 $executors->push($executor);
 
@@ -83,6 +89,6 @@ class MultiExecutor implements ExecutorInterface
             }
         } while (++$attempt < $retries);
 
-        throw new FailureException('No DNS servers responded to the query.');
+        throw $exception;
     }
 }

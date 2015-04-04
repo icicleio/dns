@@ -1,9 +1,9 @@
 <?php
 namespace Icicle\Dns\Executor;
 
-use Icicle\Dns\Query\QueryInterface;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
+use LibDNS\Messages\Message;
 use LibDNS\Records\RecordCollection;
 use SplPriorityQueue;
 
@@ -24,7 +24,7 @@ class CachingExecutor implements ExecutorInterface
         $this->callback = $this->createCallback();
     }
     
-    public function execute(QueryInterface $query, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
+    public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {
         $name = $query->getDomain()->getValue();
         $type = $query->getType();
@@ -33,8 +33,8 @@ class CachingExecutor implements ExecutorInterface
             return Promise::resolve($this->cache[$name][$type]);
         }
         
-        return $this->executor->execute($query, $timeout, $retries)
-            ->tap(function (RecordCollection $answers) use ($name, $type) {
+        return $this->executor->execute($name, $type, $timeout, $retries)
+            ->tap(function (Message $message) use ($name, $type) {
                 $this->cache[$name][$type] = $answers;
                 
                 $ttl = self::MAX_TTL;
