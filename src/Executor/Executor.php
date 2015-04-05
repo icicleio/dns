@@ -74,11 +74,7 @@ class Executor implements ExecutorInterface
         $this->encoder = (new EncoderFactory())->create();
         $this->decoder = (new DecoderFactory())->create();
 
-        $this->connector = $connector;
-
-        if (null === $this->connector) {
-            $this->connector = new Connector();
-        }
+        $this->connector = $connector ?: new Connector();
     }
     
     /**
@@ -158,7 +154,9 @@ class Executor implements ExecutorInterface
                 $answers = $response->getAnswerRecords();
 
                 if (0 === count($answers)) {
-                    throw new NotFoundException($question->getName()->getValue(), $question->getType());
+                    $name = $question->getName();
+                    $type = $question->getType();
+                    throw new NotFoundException($name, $type);
                 }
 
                 yield $response;

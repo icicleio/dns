@@ -28,11 +28,7 @@ class Connector implements ConnectorInterface
     public function __construct(ResolverInterface $resolver, ClientConnectorInterface $connector = null)
     {
         $this->resolver = $resolver;
-        
-        $this->connector = $connector;
-        if (null === $this->connector) {
-            $this->connector = new ClientConnector();
-        }
+        $this->connector = $connector ?: new ClientConnector();
     }
     
     /**
