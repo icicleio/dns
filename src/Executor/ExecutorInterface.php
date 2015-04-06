@@ -19,7 +19,6 @@ interface ExecutorInterface
      * @reject  \Icicle\Dns\Exception\FailureException If sending the request or parsing the response fails.
      * @reject  \Icicle\Dns\Exception\MessageException If the server returns a non-zero response code or not response
      *          is received from the server.
-     * @reject  \Icicle\Dns\Exception\NotFoundException If the domain cannot be resolved.
      */
     public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES);
 }

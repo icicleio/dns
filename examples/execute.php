@@ -18,11 +18,9 @@ $domain = $argv[1];
 $type = $argv[2];
 
 $coroutine = Coroutine::call(function ($query, $type, $timeout = ExecutorInterface::DEFAULT_TIMEOUT) {
-//    $executor = new MultiExecutor();
-//    $executor->add(new Executor('8.8.8.8'));
-//    $executor->add(new Executor('8.8.4.4'));
-
-    $executor = new Executor('10.0.1.1');
+    $executor = new MultiExecutor();
+    $executor->add(new Executor('8.8.8.8'));
+    $executor->add(new Executor('8.8.4.4'));
 
     echo "Query: {$query}:\n";
 
@@ -34,6 +32,13 @@ $coroutine = Coroutine::call(function ($query, $type, $timeout = ExecutorInterfa
     /** @var \LibDNS\Records\Resource $record */
     foreach ($answers as $record) {
         echo "Result: Type:{$record->getType()} TTL:{$record->getTTL()} {$record->getData()}\n";
+    }
+
+    $authority = $response->getAuthorityRecords();
+
+    /** @var \LibDNS\Records\Resource $record */
+    foreach ($authority as $record) {
+        echo "Authority: Type:{$record->getType()} TTL:{$record->getTTL()} {$record->getData()}\n";
     }
 }, $domain, $type);
 

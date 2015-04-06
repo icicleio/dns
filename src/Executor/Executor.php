@@ -124,7 +124,6 @@ class Executor implements ExecutorInterface
      *          not respond at all.
      * @reject  \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
      * @reject  \Icicle\Dns\Exception\ResponseException If a non-zero response code is received.
-     * @reject  \Icicle\Dns\Exception\NoResponseException If no response is received.
      */
     protected function run($name, $type, $timeout, $retries)
     {
@@ -141,7 +140,7 @@ class Executor implements ExecutorInterface
 
         do {
             try {
-                $client->write($data);
+                yield $client->write($data);
 
                 $response = $this->decoder->decode(
                     yield $client->read(self::MAX_PACKET_SIZE, null, $timeout)
@@ -149,14 +148,6 @@ class Executor implements ExecutorInterface
 
                 if (0 !== $response->getResponseCode()) {
                     throw new ResponseException($response);
-                }
-
-                $answers = $response->getAnswerRecords();
-
-                if (0 === count($answers)) {
-                    $name = $question->getName();
-                    $type = $question->getType();
-                    throw new NotFoundException($name, $type);
                 }
 
                 yield $response;

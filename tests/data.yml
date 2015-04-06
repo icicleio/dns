@@ -1,0 +1,89 @@
+
+A:
+    icicle.io:
+        request: AAABAAABAAAAAAAABmljaWNsZQJpbwAAAQAB
+        response: AACFAAABAAEAAwADBmljaWNsZQJpbwAAAQABwAwAAQABAAAqMAAExyZRxMAMAAIAAQAAKjAAGQdtZXJjdXJ5C25lZ2F0aXZlaW9uA25ldADADAACAAEAACowAAkGY2FyYm9uwD/ADAACAAEAACowAAkGc29kaXVtwD/AXAABAAEAACowAATHJlHBwHEAAQABAAAqMAAExyZRxMA3AAEAAQAAKjAABMcmUQY=
+        answer:
+            - {type: 1, ttl: 10800, value: 199.38.81.196}
+        authority:
+            - {type: 2, ttl: 10800, value: mercury.negativeion.net}
+            - {type: 2, ttl: 10800, value: sodium.negativeion.net}
+            - {type: 2, ttl: 10800, value: carbon.negativeion.net}
+    www.icicle.io:
+        request: AAABAAABAAAAAAAAA3d3dwZpY2ljbGUCaW8AAAEAAQ==
+        response: AACFAAABAAIAAwADA3d3dwZpY2ljbGUCaW8AAAEAAcAMAAUAAQAAKjAAAsAQwBAAAQABAAAqMAAExyZRxMAQAAIAAQAAKjAAGAZzb2RpdW0LbmVnYXRpdmVpb24DbmV0AMAQAAIAAQAAKjAACQZjYXJib27AUMAQAAIAAQAAKjAACgdtZXJjdXJ5wFDAbQABAAEAACowAATHJlHBwEkAAQABAAAqMAAExyZRxMCCAAEAAQAAKjAABMcmUQY=
+        answer:
+            - {type: 5, ttl: 10800, value: icicle.io}
+            - {type: 1, ttl: 10800, value: 199.38.81.196}
+        authority:
+            - {type: 2, ttl: 10800, value: sodium.negativeion.net}
+            - {type: 2, ttl: 10800, value: carbon.negativeion.net}
+            - {type: 2, ttl: 10800, value: mercury.negativeion.net}
+    google.com:
+        request: AAABAAABAAAAAAAAA3d3dwZnb29nbGUDY29tAAABAAE=
+        response: AACBgAABAAYAAAAAA3d3dwZnb29nbGUDY29tAAABAAHADAABAAEAAAAmAAStwttpwAwAAQABAAAAJgAErcLbasAMAAEAAQAAACYABK3C25PADAABAAEAAAAmAAStwttjwAwAAQABAAAAJgAErcLbZ8AMAAEAAQAAACYABK3C22g=
+        answer:
+            - {type: 1, ttl: 38, value: 173.194.219.105}
+            - {type: 1, ttl: 38, value: 173.194.219.106}
+            - {type: 1, ttl: 38, value: 173.194.219.147}
+            - {type: 1, ttl: 38, value: 173.194.219.99}
+            - {type: 1, ttl: 38, value: 173.194.219.103}
+            - {type: 1, ttl: 38, value: 173.194.219.104}
+    www.google.com:
+        request: AAABAAABAAAAAAAAA3d3dwZnb29nbGUDY29tAAABAAE=
+        response: AACBgAABAAYAAAAAA3d3dwZnb29nbGUDY29tAAABAAHADAABAAEAAAAXAARA6bFnwAwAAQABAAAAFwAEQOmxaMAMAAEAAQAAABcABEDpsWnADAABAAEAAAAXAARA6bFqwAwAAQABAAAAFwAEQOmxk8AMAAEAAQAAABcABEDpsWM=
+        answer:
+            - {type: 1, ttl: 38, value: 173.194.219.103}
+            - {type: 1, ttl: 38, value: 173.194.219.104}
+            - {type: 1, ttl: 38, value: 173.194.219.105}
+            - {type: 1, ttl: 38, value: 173.194.219.106}
+            - {type: 1, ttl: 38, value: 173.194.219.147}
+            - {type: 1, ttl: 38, value: 173.194.219.99}
+    github.com:
+        request: AAABAAABAAAAAAAABmdpdGh1YgNjb20AAAEAAQ==
+        response: AACBgAABAAEAAAAABmdpdGh1YgNjb20AAAEAAcAMAAEAAQAAABYABMAe/IA=
+        answer:
+            - {type: 1, ttl: 22, value: 192.30.252.128}
+    www.github.com:
+        request: AAABAAABAAAAAAAAA3d3dwZnaXRodWIDY29tAAABAAE=
+        response: AACBgAABAAIAAAAAA3d3dwZnaXRodWIDY29tAAABAAHADAAFAAEAAAHoAALAEMAQAAEAAQAAAB0ABMAe/II=
+        answer:
+            - {type: 5, ttl: 488, value: github.com}
+            - {type: 1, ttl: 29, value: 192.30.252.130}
+
+MX:
+    icicle.io:
+        request: AAABAAABAAAAAAAABmljaWNsZQJpbwAADwAB
+        response: AACFAAABAAEAAwAEBmljaWNsZQJpbwAADwABwAwADwABAAAqMAAYAAAEbWFpbAtuZWdhdGl2ZWlvbgNuZXQAwAwAAgABAAAqMAAJBnNvZGl1bcAuwAwAAgABAAAqMAAJBmNhcmJvbsAuwAwAAgABAAAqMAAKB21lcmN1cnnALsApAAEAAQAAKjAABMcmUQbAYAABAAEAACowAATHJlHBwEsAAQABAAAqMAAExyZRxMB1AAEAAQAAKjAABMcmUQY=
+        answer:
+            - {type: 15, ttl: 10800, value: 0,mail.negativeion.net}
+        authority:
+            - {type: 2, ttl: 10800, value: sodium.negativeion.net}
+            - {type: 2, ttl: 10800, value: carbon.negativeion.net}
+            - {type: 2, ttl: 10800, value: mercury.negativeion.net}
+    google.com:
+        request: AAABAAABAAAAAAAABmdvb2dsZQNjb20AAA8AAQ==
+        response: AACBgAABAAUAAAAABmdvb2dsZQNjb20AAA8AAcAMAA8AAQAAAlcAEQAUBGFsdDEFYXNwbXgBbMAMwAwADwABAAACVwAEAArAL8AMAA8AAQAAAlcACQAeBGFsdDLAL8AMAA8AAQAAAlcACQAoBGFsdDPAL8AMAA8AAQAAAlcACQAyBGFsdDTALw==
+        answer:
+            - {type: 15, ttl: 599, value: 20,alt1.aspmx.l.google.com}
+            - {type: 15, ttl: 599, value: 10,aspmx.l.google.com}
+            - {type: 15, ttl: 599, value: 30,alt2.aspmx.l.google.com}
+            - {type: 15, ttl: 599, value: 40,alt3.aspmx.l.google.com}
+            - {type: 15, ttl: 599, value: 50,alt4.aspmx.l.google.com}
+
+NS:
+    icicle.io:
+        request: AAABAAABAAAAAAAABmljaWNsZQJpbwAAAgAB
+        response: AACBgAABAAMAAAAABmljaWNsZQJpbwAAAgABwAwAAgABAAAmcAAZB21lcmN1cnkLbmVnYXRpdmVpb24DbmV0AMAMAAIAAQAAJnAACQZzb2RpdW3AL8AMAAIAAQAAJnAACQZjYXJib27ALw==
+        answer:
+            - {type: 2, ttl: 9840, value: mercury.negativeion.net}
+            - {type: 2, ttl: 9840, value: sodium.negativeion.net}
+            - {type: 2, ttl: 9840, value: carbon.negativeion.net}
+    google.com:
+        request: AAABAAABAAAAAAAABmdvb2dsZQNjb20AAAIAAQ==
+        response: AACBgAABAAQAAAAABmdvb2dsZQNjb20AAAIAAcAMAAIAAQACdlEABgNuczPADMAMAAIAAQACdlEABgNuczTADMAMAAIAAQACdlEABgNuczHADMAMAAIAAQACdlEABgNuczLADA==
+        answer:
+            - {type: 2, ttl: 161361, value: ns3.google.com}
+            - {type: 2, ttl: 161361, value: ns4.google.com}
+            - {type: 2, ttl: 161361, value: ns1.google.com}
+            - {type: 2, ttl: 161361, value: ns2.google.com}
