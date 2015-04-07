@@ -4,7 +4,6 @@ namespace Icicle\Dns\Executor;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\LogicException;
 use Icicle\Dns\Exception\MessageException;
-use Icicle\Dns\Exception\NoResponseException;
 
 class MultiExecutor implements ExecutorInterface
 {

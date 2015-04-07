@@ -5,10 +5,9 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\InvalidTypeException;
 use Icicle\Dns\Exception\NoResponseException;
-use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Exception\ResponseException;
-use Icicle\Socket\Client\Connector;
-use Icicle\Socket\Client\ConnectorInterface;
+use Icicle\Socket\Client\Connector as ClientConnector;
+use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
 use Icicle\Socket\Exception\TimeoutException;
 use LibDNS\Messages\MessageFactory;
 use LibDNS\Messages\MessageTypes;
@@ -63,7 +62,7 @@ class Executor implements ExecutorInterface
      * @param   int $port
      * @param   \Icicle\Socket\Client\ConnectorInterface|null $connector
      */
-    public function __construct($address, $port = self::DEFAULT_PORT, ConnectorInterface $connector = null)
+    public function __construct($address, $port = self::DEFAULT_PORT, ClientConnectorInterface $connector = null)
     {
         $this->address = $address;
         $this->port = $port;
@@ -74,7 +73,7 @@ class Executor implements ExecutorInterface
         $this->encoder = (new EncoderFactory())->create();
         $this->decoder = (new DecoderFactory())->create();
 
-        $this->connector = $connector ?: new Connector();
+        $this->connector = $connector ?: new ClientConnector();
     }
     
     /**
@@ -131,7 +130,7 @@ class Executor implements ExecutorInterface
 
         $request = $this->createRequest($question);
 
-        $data = $this->encoder->encode($request);
+        $request = $this->encoder->encode($request);
 
         /** @var \Icicle\Socket\Client\ClientInterface $client */
         $client = (yield $this->connect());
@@ -140,11 +139,15 @@ class Executor implements ExecutorInterface
 
         do {
             try {
-                yield $client->write($data);
+                yield $client->write($request);
 
-                $response = $this->decoder->decode(
-                    yield $client->read(self::MAX_PACKET_SIZE, null, $timeout)
-                );
+                $response = (yield $client->read(self::MAX_PACKET_SIZE, null, $timeout));
+
+                try {
+                    $response = $this->decoder->decode($response);
+                } catch (\Exception $exception) {
+                    throw new FailureException($exception); // Wrap in more specific exception.
+                }
 
                 if (0 !== $response->getResponseCode()) {
                     throw new ResponseException($response);
@@ -154,10 +157,6 @@ class Executor implements ExecutorInterface
                 return;
             } catch (TimeoutException $exception) {
                 // Ignore TimeoutException and try the request again.
-            } catch (\UnexpectedValueException $exception) {
-                throw new FailureException($exception);
-            } catch (\InvalidArgumentException $exception) {
-                throw new FailureException($exception);
             }
         } while (++$attempt <= $retries);
 
@@ -199,6 +198,8 @@ class Executor implements ExecutorInterface
         $request = $this->messageFactory->create(MessageTypes::QUERY);
         $request->getQuestionRecords()->add($question);
         $request->isRecursionDesired(true);
+
+        $request->setID(mt_rand(0, 0xffff));
 
         return $request;
     }

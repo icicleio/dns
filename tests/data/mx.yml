@@ -1,0 +1,18 @@
+- domain: icicle.io
+  request: AAABAAABAAAAAAAABmljaWNsZQJpbwAADwAB
+  response: AACFAAABAAEAAwAEBmljaWNsZQJpbwAADwABwAwADwABAAAqMAAYAAAEbWFpbAtuZWdhdGl2ZWlvbgNuZXQAwAwAAgABAAAqMAAJBnNvZGl1bcAuwAwAAgABAAAqMAAJBmNhcmJvbsAuwAwAAgABAAAqMAAKB21lcmN1cnnALsApAAEAAQAAKjAABMcmUQbAYAABAAEAACowAATHJlHBwEsAAQABAAAqMAAExyZRxMB1AAEAAQAAKjAABMcmUQY=
+  answer:
+      - {type: 15, ttl: 10800, value: "0,mail.negativeion.net"}
+  authority:
+      - {type: 2, ttl: 10800, value: sodium.negativeion.net}
+      - {type: 2, ttl: 10800, value: carbon.negativeion.net}
+      - {type: 2, ttl: 10800, value: mercury.negativeion.net}
+- domain: google.com
+  request: AAABAAABAAAAAAAABmdvb2dsZQNjb20AAA8AAQ==
+  response: AACBgAABAAUAAAAABmdvb2dsZQNjb20AAA8AAcAMAA8AAQAAAlcAEQAUBGFsdDEFYXNwbXgBbMAMwAwADwABAAACVwAEAArAL8AMAA8AAQAAAlcACQAeBGFsdDLAL8AMAA8AAQAAAlcACQAoBGFsdDPAL8AMAA8AAQAAAlcACQAyBGFsdDTALw==
+  answer:
+      - {type: 15, ttl: 599, value: "20,alt1.aspmx.l.google.com"}
+      - {type: 15, ttl: 599, value: "10,aspmx.l.google.com"}
+      - {type: 15, ttl: 599, value: "30,alt2.aspmx.l.google.com"}
+      - {type: 15, ttl: 599, value: "40,alt3.aspmx.l.google.com"}
+      - {type: 15, ttl: 599, value: "50,alt4.aspmx.l.google.com"}

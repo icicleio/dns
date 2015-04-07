@@ -1,0 +1,15 @@
+- domain: icicle.io
+  request: AAABAAABAAAAAAAABmljaWNsZQJpbwAAAgAB
+  response: AACBgAABAAMAAAAABmljaWNsZQJpbwAAAgABwAwAAgABAAAmcAAZB21lcmN1cnkLbmVnYXRpdmVpb24DbmV0AMAMAAIAAQAAJnAACQZzb2RpdW3AL8AMAAIAAQAAJnAACQZjYXJib27ALw==
+  answer:
+      - {type: 2, ttl: 9840, value: mercury.negativeion.net}
+      - {type: 2, ttl: 9840, value: sodium.negativeion.net}
+      - {type: 2, ttl: 9840, value: carbon.negativeion.net}
+- domain: google.com
+  request: AAABAAABAAAAAAAABmdvb2dsZQNjb20AAAIAAQ==
+  response: AACBgAABAAQAAAAABmdvb2dsZQNjb20AAAIAAcAMAAIAAQACdlEABgNuczPADMAMAAIAAQACdlEABgNuczTADMAMAAIAAQACdlEABgNuczHADMAMAAIAAQACdlEABgNuczLADA==
+  answer:
+      - {type: 2, ttl: 161361, value: ns3.google.com}
+      - {type: 2, ttl: 161361, value: ns4.google.com}
+      - {type: 2, ttl: 161361, value: ns1.google.com}
+      - {type: 2, ttl: 161361, value: ns2.google.com}

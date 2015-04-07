@@ -1,0 +1,62 @@
+- domain: icicle.io
+  request: AAABAAABAAAAAAAABmljaWNsZQJpbwAAAQAB,
+  response: AACFAAABAAEAAwADBmljaWNsZQJpbwAAAQABwAwAAQABAAAqMAAExyZRxMAMAAIAAQAAKjAAGQdtZXJjdXJ5C25lZ2F0aXZlaW9uA25ldADADAACAAEAACowAAkGY2FyYm9uwD/ADAACAAEAACowAAkGc29kaXVtwD/AXAABAAEAACowAATHJlHBwHEAAQABAAAqMAAExyZRxMA3AAEAAQAAKjAABMcmUQY=
+  answer:
+      - {type: 1, ttl: 10800, value: 199.38.81.196}
+  authority:
+      - {type: 2, ttl: 10800, value: mercury.negativeion.net}
+      - {type: 2, ttl: 10800, value: carbon.negativeion.net}
+      - {type: 2, ttl: 10800, value: sodium.negativeion.net}
+- domain: www.icicle.io
+  request: AAABAAABAAAAAAAAA3d3dwZpY2ljbGUCaW8AAAEAAQ==
+  response: AACFAAABAAIAAwADA3d3dwZpY2ljbGUCaW8AAAEAAcAMAAUAAQAAKjAAAsAQwBAAAQABAAAqMAAExyZRxMAQAAIAAQAAKjAAGAZzb2RpdW0LbmVnYXRpdmVpb24DbmV0AMAQAAIAAQAAKjAACQZjYXJib27AUMAQAAIAAQAAKjAACgdtZXJjdXJ5wFDAbQABAAEAACowAATHJlHBwEkAAQABAAAqMAAExyZRxMCCAAEAAQAAKjAABMcmUQY=
+  answer:
+      - {type: 5, ttl: 10800, value: icicle.io}
+      - {type: 1, ttl: 10800, value: 199.38.81.196}
+  authority:
+      - {type: 2, ttl: 10800, value: sodium.negativeion.net}
+      - {type: 2, ttl: 10800, value: carbon.negativeion.net}
+      - {type: 2, ttl: 10800, value: mercury.negativeion.net}
+- domain: google.com
+  request: AAABAAABAAAAAAAABmdvb2dsZQNjb20AAAEAAQ==
+  response: AACBgAABAAEAAAAABmdvb2dsZQNjb20AAAEAAcAMAAEAAQAAAK8ABNg62E4=
+  answer:
+      - {type: 1, ttl: 175, value: 216.58.216.78}
+- domain: www.google.com
+  request: AAABAAABAAAAAAAAA3d3dwZnb29nbGUDY29tAAABAAE=
+  response: AACBgAABAAYAAAAAA3d3dwZnb29nbGUDY29tAAABAAHADAABAAEAAAAWAARA6bFowAwAAQABAAAAFgAEQOmxacAMAAEAAQAAABYABEDpsWrADAABAAEAAAAWAARA6bGTwAwAAQABAAAAFgAEQOmxY8AMAAEAAQAAABYABEDpsWc=
+  answer:
+      - {type: 1, ttl: 22, value: 64.233.177.104}
+      - {type: 1, ttl: 22, value: 64.233.177.105}
+      - {type: 1, ttl: 22, value: 64.233.177.106}
+      - {type: 1, ttl: 22, value: 64.233.177.147}
+      - {type: 1, ttl: 22, value: 64.233.177.99}
+      - {type: 1, ttl: 22, value: 64.233.177.103}
+- domain: twitter.com
+  request: AAABAAABAAAAAAAAB3R3aXR0ZXIDY29tAAABAAE=
+  response: AACBgAABAAQAAAAAB3R3aXR0ZXIDY29tAAABAAHADAABAAEAAAAeAATHO5YHwAwAAQABAAAAHgAExzuWJ8AMAAEAAQAAAB4ABMc7lArADAABAAEAAAAeAATHO5Xm
+  answer:
+      - {type: 1, ttl: 30, value: 199.59.150.7}
+      - {type: 1, ttl: 30, value: 199.59.150.39}
+      - {type: 1, ttl: 30, value: 199.59.148.10}
+      - {type: 1, ttl: 30, value: 199.59.149.230}
+- domain: www.twitter.com
+  request: AAABAAABAAAAAAAAA3d3dwd0d2l0dGVyA2NvbQAAAQAB
+  response: AACBgAABAAUAAAAAA3d3dwd0d2l0dGVyA2NvbQAAAQABwAwABQABAAAB/gACwBDAEAABAAEAAAAaAATHO5QKwBAAAQABAAAAGgAExzuUUsAQAAEAAQAAABoABMc7lgfAEAABAAEAAAAaAATHO5Yn
+  answer:
+      - {type: 5, ttl: 510, value: twitter.com}
+      - {type: 1, ttl: 26, value: 199.59.148.10}
+      - {type: 1, ttl: 26, value: 199.59.148.82}
+      - {type: 1, ttl: 26, value: 199.59.150.7}
+      - {type: 1, ttl: 26, value: 199.59.150.39}
+- domain: github.com
+  request: AAABAAABAAAAAAAABmdpdGh1YgNjb20AAAEAAQ==
+  response: AACBgAABAAEAAAAABmdpdGh1YgNjb20AAAEAAcAMAAEAAQAAABYABMAe/IA=
+  answer:
+      - {type: 1, ttl: 22, value: 192.30.252.128}
+- domain: www.github.com
+  request: AAABAAABAAAAAAAAA3d3dwZnaXRodWIDY29tAAABAAE=
+  response: AACBgAABAAIAAAAAA3d3dwZnaXRodWIDY29tAAABAAHADAAFAAEAAAHoAALAEMAQAAEAAQAAAB0ABMAe/II=
+  answer:
+      - {type: 5, ttl: 488, value: github.com}
+      - {type: 1, ttl: 29, value: 192.30.252.130}
