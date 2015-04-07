@@ -5,7 +5,8 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\InvalidTypeException;
 use Icicle\Dns\Exception\NoResponseException;
-use Icicle\Dns\Exception\ResponseException;
+use Icicle\Dns\Exception\ResponseCodeException;
+use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Socket\Client\Connector as ClientConnector;
 use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
 use Icicle\Socket\Exception\TimeoutException;
@@ -122,7 +123,7 @@ class Executor implements ExecutorInterface
      * @reject  \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
      *          not respond at all.
      * @reject  \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
-     * @reject  \Icicle\Dns\Exception\ResponseException If a non-zero response code is received.
+     * @reject  \Icicle\Dns\Exception\MessageException If there is a problem with the response or no response.
      */
     protected function run($name, $type, $timeout, $retries)
     {
@@ -130,7 +131,7 @@ class Executor implements ExecutorInterface
 
         $request = $this->createRequest($question);
 
-        $request = $this->encoder->encode($request);
+        $data = $this->encoder->encode($request);
 
         /** @var \Icicle\Socket\Client\ClientInterface $client */
         $client = (yield $this->connect());
@@ -139,7 +140,7 @@ class Executor implements ExecutorInterface
 
         do {
             try {
-                yield $client->write($request);
+                yield $client->write($data);
 
                 $response = (yield $client->read(self::MAX_PACKET_SIZE, null, $timeout));
 
@@ -150,7 +151,11 @@ class Executor implements ExecutorInterface
                 }
 
                 if (0 !== $response->getResponseCode()) {
-                    throw new ResponseException($response);
+                    throw new ResponseCodeException($response);
+                }
+
+                if ($response->getId() !== $request->getId()) {
+                    throw new ResponseIdException($response);
                 }
 
                 yield $response;
@@ -180,6 +185,8 @@ class Executor implements ExecutorInterface
                 throw new InvalidTypeException($type);
             }
             $type = $value;
+        } elseif (0 > $type || 0xffff < $type) {
+            throw new InvalidTypeException($type);
         }
 
         $question = $this->questionFactory->create($type);
@@ -199,9 +206,19 @@ class Executor implements ExecutorInterface
         $request->getQuestionRecords()->add($question);
         $request->isRecursionDesired(true);
 
-        $request->setID(mt_rand(0, 0xffff));
+        $request->setID($this->createId());
 
         return $request;
+    }
+
+    /**
+     * Creates message ID.
+     *
+     * @return  int
+     */
+    protected function createId()
+    {
+        return mt_rand(0, 0xffff);
     }
 
     /**

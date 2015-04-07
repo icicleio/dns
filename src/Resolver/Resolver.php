@@ -51,10 +51,6 @@ class Resolver implements ResolverInterface
 
         $answers = $response->getAnswerRecords();
 
-        if (0 === count($answers)) {
-            throw new NotFoundException($domain, ResourceQTypes::A);
-        }
-
         $result = [];
 
         /** @var \LibDNS\Records\Resource $record */

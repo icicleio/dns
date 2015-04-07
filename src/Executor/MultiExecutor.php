@@ -55,8 +55,7 @@ class MultiExecutor implements ExecutorInterface
      * @reject  \Icicle\Dns\Exception\LogicException If no executors are defined.
      * @reject  \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
      *          not respond at all.
-     * @reject  \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
-     * @reject  \Icicle\Dns\Exception\NoResponseException If no response is received from any server.
+     * @reject  \Icicle\Dns\Exception\MessageException If there is a problem with the response or no response.
      */
     protected function run($name, $type, $timeout, $retries)
     {
@@ -65,9 +64,7 @@ class MultiExecutor implements ExecutorInterface
         }
 
         $executors = clone $this->executors;
-        $count = count($executors);
-
-        $retries = ($retries + 1) * $count;
+        $retries = ($retries + 1) * count($executors) - 1;
 
         $attempt = 0;
 
@@ -86,7 +83,7 @@ class MultiExecutor implements ExecutorInterface
                     $this->executors->push($this->executors->shift());
                 }
             }
-        } while (++$attempt < $retries);
+        } while (++$attempt <= $retries);
 
         throw $exception;
     }

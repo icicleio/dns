@@ -14,7 +14,7 @@ class InvalidTypeException extends InvalidArgumentException
     public function __construct($type)
     {
         if (is_int($type)) {
-            $message = "{$type} does not correspond to a valid record type.";
+            $message = "{$type} does not correspond to a valid record type (must be between 0 and 65535).";
         } else {
             $message = "'{$type}' does not name a valid record type.";
         }

@@ -7,9 +7,9 @@ class ResponseException extends MessageException
 {
     private $response;
 
-    public function __construct(Message $response)
+    public function __construct($message, Message $response)
     {
-        parent::__construct("Response with error code {$response->getResponseCode()}");
+        parent::__construct($message);
 
         $this->response = $response;
     }

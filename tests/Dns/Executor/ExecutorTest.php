@@ -1,14 +1,15 @@
 <?php
 namespace Icicle\Tests\Dns\Executor;
 
+use Icicle\Dns\Exception\InvalidTypeException;
+use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Exception\TimeoutException;
-use Icicle\Tests\TestCase;
+use Icicle\Tests\Dns\TestCase;
 use LibDNS\Messages\Message;
-use Symfony\Component\Yaml\Yaml;
 
 class ExecutorTest extends TestCase
 {
@@ -77,20 +78,43 @@ class ExecutorTest extends TestCase
         $this->assertSame(self::PORT, $this->executor->getPort());
     }
 
-    public function testInvalidType()
+    public function testInvalidIntegerType()
     {
-        $promise = $this->executor->execute('example.com', 'Q');
+        $type = -1;
+
+        $promise = $this->executor->execute('example.com', $type);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\InvalidTypeException'));
+            ->with($this->isInstanceOf('Icicle\Dns\Exception\InvalidTypeException'))
+            ->will($this->returnCallback(function (InvalidTypeException $exception) use ($type) {
+                $this->assertSame($type, $exception->getType());
+            }));
 
         $promise->done($this->createCallback(0), $callback);
 
         Loop::run();
     }
 
-    public function execute($type, $domain, $request, $response, $answers = null, $authority = null)
+    public function testInvalidStringType()
+    {
+        $type = 'Q';
+
+        $promise = $this->executor->execute('example.com', $type);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Dns\Exception\InvalidTypeException'))
+            ->will($this->returnCallback(function (InvalidTypeException $exception) use ($type) {
+                $this->assertSame($type, $exception->getType());
+            }));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop::run();
+    }
+
+    public function execute($type, $domain, $request, $response, array $answers = null, array $authority = null)
     {
         $this->client->expects($this->once())
             ->method('write')
@@ -136,59 +160,27 @@ class ExecutorTest extends TestCase
     }
 
     /**
-     * @return  array Array of A record requests and responses.
-     */
-    public function getARecords()
-    {
-        return Yaml::parse(file_get_contents(dirname(dirname(__DIR__)) . '/data/a.yml'));
-    }
-
-    /**
      * @dataProvider getARecords
      */
-    public function testARecords($domain, $request, $response, $answers = null, $authority = null)
+    public function testARecords($domain, $request, $response, array $answers = null, array $authority = null)
     {
         $this->execute('A', $domain, $request, $response, $answers, $authority);
     }
 
     /**
-     * @return  array Array of MX record requests and responses.
-     */
-    public function getMxRecords()
-    {
-        return Yaml::parse(file_get_contents(dirname(dirname(__DIR__)) . '/data/mx.yml'));
-    }
-
-    /**
      * @dataProvider getMxRecords
      */
-    public function testMxRecords($domain, $request, $response, $answers = null, $authority = null)
+    public function testMxRecords($domain, $request, $response, array $answers = null, array $authority = null)
     {
         $this->execute('MX', $domain, $request, $response, $answers, $authority);
     }
 
     /**
-     * @return  array Array of NS record requests and responses.
-     */
-    public function getNsRecords()
-    {
-        return Yaml::parse(file_get_contents(dirname(dirname(__DIR__)) . '/data/ns.yml'));
-    }
-
-    /**
      * @dataProvider getNsRecords
      */
-    public function testNsRecords($domain, $request, $response, $answers = null, $authority = null)
+    public function testNsRecords($domain, $request, $response, array $answers = null, array $authority = null)
     {
         $this->execute('NS', $domain, $request, $response, $answers, $authority);
-    }
-
-    /**
-     * @return  array Array of invalid record requests and responses.
-     */
-    public function getInvalid()
-    {
-        return Yaml::parse(file_get_contents(dirname(dirname(__DIR__)) . '/data/invalid.yml'));
     }
 
     /**
@@ -221,6 +213,43 @@ class ExecutorTest extends TestCase
         Loop::run();
     }
 
+    /**
+     * @dataProvider getNsRecords
+     */
+    public function testInvalidResponseId($domain, $request, $response)
+    {
+        $this->client->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) use (&$id, $request) {
+                $id = substr($data, 0, self::ID_LENGTH);
+                $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
+                return strlen($data);
+            }));
+
+        $this->client->expects($this->once())
+            ->method('read')
+            ->will($this->returnCallback(function () use (&$id, $response) {
+                $id = unpack('n', $id)[1];
+                $id += 1;
+                $id = pack('n', $id);
+                return Promise::resolve($id . substr(base64_decode($response), self::ID_LENGTH));
+            }));
+
+        $promise = $this->executor->execute($domain, 'NS');
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Dns\Exception\ResponseIdException'))
+            ->will($this->returnCallback(function (ResponseIdException $exception) use (&$id) {
+                $response = $exception->getResponse();
+                $this->assertInstanceOf('LibDNS\Messages\Message', $response);
+            }));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop::run();
+    }
+
     public function testEmptyStringReceivedAsResponse()
     {
         $this->client->expects($this->once())
@@ -237,7 +266,6 @@ class ExecutorTest extends TestCase
 
         Loop::run();
     }
-
 
     /**
      * @depends testEmptyStringReceivedAsResponse
