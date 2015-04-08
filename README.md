@@ -154,11 +154,13 @@ Loop::run();
 
 ### MultiExecutor
 
-The `Icicle\Dns\Executor\MultiExecutor` class can be used to combine multiple executors to send queries to several DNS servers in case some of the servers are not responding.
+The `Icicle\Dns\Executor\MultiExecutor` class can be used to combine multiple executors to send queries to several name servers so queries can be resolved even if some name servers stop responding.
 
 ```php
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\MultiExecutor;
+use Icicle\Loop\Loop;
+use LibDNS\Messages\Message;
 
 $executor = new MultiExecutor();
 
@@ -167,13 +169,26 @@ $executor->add(new Executor('8.8.4.4'));
 
 // Executor will send query to 8.8.4.4 if 8.8.8.8 does not respond.
 $promise = $executor->execute('google.com', 'MX');
+
+$promise->then(
+    function (Message $message) {
+        foreach ($message->getAnswerRecords() as $resource) {
+            echo "TTL: {$resource->getTTL()} Value: {$resource->getData()}\n";
+        }
+    },
+    function (Exception $exception) {
+        echo "Query failed: {$exception->getMessage()}\n";
+    }
+);
+
+Loop::run();
 ```
 
 Queries using the above executor will automatically send requests to the second name server if the first does not respond. Subsequent queries are initially sent to the last server that successfully responded to a query.
 
 ## Resolver
 
-A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is a specialized executor that performs only `A` queries, fulfilling the promise returned from `resolve()` with an array of IP addresses (even if only one is returned, it is still an array).
+A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the promise returned from `resolve()` with an array of IP addresses (even if only one IP address is found, the promise is still resolved with an array).
 
 ```php
 PromiseInterface $resolverInterface->resolve(string $domain, float|int $timeout = 2, int $retries = 5)
