@@ -48,6 +48,8 @@ class Connector implements ConnectorInterface
     }
 
     /**
+     * @coroutine
+     *
      * @param   string $domain
      * @param   int $port
      * @param   float|int $timeout

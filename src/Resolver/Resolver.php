@@ -5,7 +5,7 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Promise\Promise;
-use LibDNS\Records\ResourceQTypes;
+use LibDNS\Records\ResourceTypes;
 
 class Resolver implements ResolverInterface
 {
@@ -38,6 +38,8 @@ class Resolver implements ResolverInterface
     }
 
     /**
+     * @coroutine
+     *
      * @param   string $domain
      * @param   float|int $timeout
      * @param   int $retries
@@ -47,7 +49,7 @@ class Resolver implements ResolverInterface
     protected function run($domain, $timeout, $retries)
     {
         /** @var \LibDNS\Messages\Message $response */
-        $response = (yield $this->executor->execute($domain, ResourceQTypes::A, $timeout, $retries));
+        $response = (yield $this->executor->execute($domain, ResourceTypes::A, $timeout, $retries));
 
         $answers = $response->getAnswerRecords();
 
@@ -56,13 +58,13 @@ class Resolver implements ResolverInterface
         /** @var \LibDNS\Records\Resource $record */
         foreach ($answers as $record) {
             // Skip any CNAME or other records returned in result.
-            if ($record->getType() === ResourceQTypes::A) {
+            if ($record->getType() === ResourceTypes::A) {
                 $result[] = $record->getData()->getField(0)->getValue();
             }
         }
 
         if (0 === count($result)) {
-            throw new NotFoundException($domain, ResourceQTypes::A);
+            throw new NotFoundException($domain, ResourceTypes::A);
         }
 
         yield $result;

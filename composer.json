@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "dev-development",
+        "icicleio/icicle": "^0.2",
         "daverandom/libdns": "~1"
     },
     "require-dev": {
@@ -24,7 +24,6 @@
         "satooshi/php-coveralls": "dev-master",
         "symfony/yaml": "~2"
     },
-    "minimum-stability" : "dev",
     "autoload": {
         "psr-4": {
             "Icicle\\Dns\\": "src"
