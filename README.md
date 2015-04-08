@@ -3,8 +3,8 @@
 This library is a component for [Icicle](//github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library returns [promises](//github.com/icicleio/Icicle/tree/master/src/Promise) from asynchronous operations that may be used to build [coroutines](//github.com/icicleio/Icicle/tree/master/src/Coroutine) to make writing asynchronous code more like writing synchronous code.
 
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
-[![Build Status](https://img.shields.io/travis/icicleio/Dns/master.svg?style=flat-square)](https://travis-ci.org/icicleio/ReactAdaptor)
-[![Coverage Status](https://img.shields.io/coveralls/icicleio/Dns.svg?style=flat-square)](https://coveralls.io/r/icicleio/ReactAdaptor)
+[![Build Status](https://img.shields.io/travis/icicleio/Dns/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Dns)
+[![Coverage Status](https://img.shields.io/coveralls/icicleio/Dns.svg?style=flat-square)](https://coveralls.io/r/icicleio/Dns)
 [![Semantic Version](https://img.shields.io/badge/semver-v0.1.0-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/dns.svg?style=flat-square)](LICENSE)
 
@@ -37,6 +37,8 @@ You can also manually edit `composer.json` to add this library as a project requ
 
 #### Example
 
+The example below uses a resolver to asynchronously find the IP address for the domain `icicle.io`.
+
 ```php
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
@@ -62,12 +64,12 @@ Loop::run();
 
 ## Documentation
 
-- [Executors](#executors)
+- [Executors](#executors) - Executes a DNS query.
     - [Creating an Executor](#creating-an-executor)
     - [Using an Executor](#using-an-executor)
     - [MultiExecutor](#multiexecutor)
-- [Resolver](#resolver)
-- [Connector](#connector)
+- [Resolver](#resolver) - Resolves the IP address for a domain name.
+- [Connector](#connector) - Connects to a host and port.
 
 All references to `PromiseInterface` in the documentation below are to `Icicle\Promise\PromiseInterface`, part of the promises component of [Icicle](//github.com/icicleio/Icicle). For more information on promises, see the [Promise API documentation](//github.com/icicleio/Icicle/tree/master/src/Promise) for more information.
 
@@ -96,7 +98,7 @@ PromiseInterface $executorInterface->execute(
 )
 ```
 
-An executor will retry a query a number of times if it doesn't receive a response within `$timeout` seconds. The number of times a query will be retried before failing is defined by `$retries`. `$timeout` seconds is allowed to elapse between each query attempt.
+An executor will retry a query a number of times if it doesn't receive a response within `$timeout` seconds. The number of times a query will be retried before failing is defined by `$retries`, with `$timeout` seconds elapsing between each query attempt.
 
 ### Creating an Executor
 
@@ -112,7 +114,7 @@ The `Icicle\Dns\Executor\Executor` constructor also accepts an instance of `Icic
 
 ### Using an Executor
 
-Once created, an executor is used by calling the `execute()` method with the domain and type of DNS query to be performed. The type may be a case-insensitive string naming a record type (e.g., `'A'`, `'MX'`, `'NS'`, `'PTR'`, `'AAAA'`) or the integer value corresponding to a record type (`LibDNS\Records\ResourceQTypes` defines constants corresponding to these types). The `execute()` returns a promise fulfilled with an instance of `LibDNS\Messages\Message` representing the response from the DNS server. `LibDNS\Messages\Message` objects have several methods that will need to be used to fetch the data in the response.
+Once created, an executor is used by calling the `execute()` method with the domain and type of DNS query to be performed. The type may be a case-insensitive string naming a record type (e.g., `'A'`, `'MX'`, `'NS'`, `'PTR'`, `'AAAA'`) or the integer value corresponding to a record type (`LibDNS\Records\ResourceQTypes` defines constants corresponding to a the integer value of a type). `execute()` returns a promise fulfilled with an instance of `LibDNS\Messages\Message` that represents the response from the name server. `LibDNS\Messages\Message` objects have several methods that will need to be used to fetch the data in the response.
 
 - `getAnswerRecords()`: Returns an instance of `LibDNS\Records\RecordCollection`, a traversable collection of `LibDNS\Record\Resource` objects containing the response answer records.
 - `getAuthorityRecords()`: Returns an instance of `LibDNS\Records\RecordCollection` containing the response authority records.
@@ -120,12 +122,12 @@ Once created, an executor is used by calling the `execute()` method with the dom
 - `getAuthorityRecords()`: Returns an instance of `LibDNS\Records\RecordCollection` containing the response authority records.
 - `isAuthorative()`: Determines if the response is authoritative for the records returned.
 
-DNS records in the traversable `LibDNS\Records\RecordCollection` objects are represented as instances of `LibDNS\Records\Resource`.
+DNS records in the traversable `LibDNS\Records\RecordCollection` objects are represented as instances of `LibDNS\Records\Resource`. These objects have several methods to access the data associated with the record.
 
-- `getType()`: Returns the record type as an integer.
-- `getName()`: Gets the domain name associated with the record.
-- `getData()`: Returns an `LibDNS\Records\RData` instance representing the records data. Casting the returned object to a string will return the data in the record as a string.
-- `getTTL()`: Gets the TTL (time-to-live) as an integer.
+- `getType()`: Returns the record type as an `integer`.
+- `getName()`: Gets the domain name associated with the record as a `string`.
+- `getData()`: Returns an `LibDNS\Records\RData` instance representing the records data. This object may be cast to a `string` or each field can be accessed with the `LibDNS\Records\RData::getField(int $index)` method. The number of fields in a resource depends on the type of resource (e.g., `MX` records contain two fields, a priority and a host name).
+- `getTTL()`: Gets the TTL (time-to-live) as an `integer`.
 
 Below is an example of how an executor can be used to find the NS records for a domain.
 
@@ -191,12 +193,18 @@ Queries using the above executor will automatically send requests to the second 
 A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the promise returned from `resolve()` with an array of IP addresses (even if only one IP address is found, the promise is still resolved with an array).
 
 ```php
-PromiseInterface $resolverInterface->resolve(string $domain, float|int $timeout = 2, int $retries = 5)
+PromiseInterface $resolverInterface->resolve(
+    string $domain,
+    float|int $timeout = 2,
+    int $retries = 5
+)
 ```
 
 Like executors, a resolver will retry a query `$retries` times if the name server does not respond within `$timeout` seconds.
 
 The `Icicle\Resolver\Resolver` class is constructed by passing an `Icicle\Executor\ExecutorInterface` instance that is used to execute queries to resolve domains.
+
+##### Example
 
 ```php
 use Icicle\Dns\Executor\Executor;
@@ -223,7 +231,7 @@ Loop::run();
 
 ## Connector
 
-The connector component connects to a server by first resolving the hostname provided, then making the connection and resolving the returned promise with an instance of `Icicle\Socket\Client\ClientInterface`. `Icicle\Dns\Connector\Connector` implements `Icicle\Socket\Client\ConnectorInterface` and `Icicle\Dns\Connector\ConnectorInterface`, allowing it to be used anywhere a standard connector (`Icicle\Socket\Client\ConnectorInterface`) is required, or allowing components to require a resolving (`Icicle\Dns\Connector\ConnectorInterface`) connector.
+The connector component connects to a server by first resolving the hostname provided, then making the connection and resolving the returned promise with an instance of `Icicle\Socket\Client\ClientInterface`. `Icicle\Dns\Connector\Connector` implements `Icicle\Socket\Client\ConnectorInterface` and `Icicle\Dns\Connector\ConnectorInterface`, allowing it to be used anywhere a standard connector (`Icicle\Socket\Client\ConnectorInterface`) is required, or allowing components to require a resolving connector (`Icicle\Dns\Connector\ConnectorInterface`).
 
 `Icicle\Dns\Connector\ConnectorInterface` defines a single method, `connect()` that should resolve a host name and connect to one of the resolved servers, resolving the returned promise with the connected client.
 
@@ -237,6 +245,8 @@ PromiseInterface $connectorInterface->connect(
 ```
 
 `Icicle\Dns\Connector\Connector` will attempt to connect to one of the IP addresses found for a given host name. If the server at that IP is unresponsive, the connector will attempt to establish a connection to the next IP in the list until a server accepts the connection. Only if the connector is unable to connect to all of the IPs will it reject the promise returned from `connect()`. The constructor also optionally accepts an instance of `Icicle\Socket\Client\ConnectorInterface` if custom behavior is desired when connecting to the resolved host.
+
+##### Example
 
 ```php
 use Icicle\Dns\Connector\Connector;
