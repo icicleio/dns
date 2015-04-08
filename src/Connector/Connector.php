@@ -11,6 +11,8 @@ use Icicle\Socket\Exception\FailureException;
 
 class Connector implements ConnectorInterface
 {
+    const IP_REGEX = '/^(?:\d{1,3}\.){3}\d{1,3}$|^\[?[\dA-Fa-f:]+:[\dA-Fa-f]{1,4}\]?$/';
+
     /**
      * @var \Icicle\Dns\Resolver\ResolverInterface
      */
@@ -41,6 +43,11 @@ class Connector implements ConnectorInterface
         $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
         $retries = ExecutorInterface::DEFAULT_RETRIES
     ) {
+        // Check if $domain is actually an IP address.
+        if (preg_match(self::IP_REGEX, $domain)) {
+            return $this->connector->connect($domain, $port, $options);
+        }
+
         $default = ['name' => $domain];
         $options = is_array($options) ? array_merge($default, $options) : $default;
 

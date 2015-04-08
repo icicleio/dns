@@ -171,4 +171,86 @@ class ConnectorTest extends TestCase
 
         Loop::run();
     }
+
+    /**
+     * @return  array
+     */
+    public function getIPv4Addresses()
+    {
+        return [
+            ['127.0.0.1'],
+            ['216.58.216.110'],
+            ['199.38.81.196']
+        ];
+    }
+
+    /**
+     * @dataProvider getIPv4Addresses
+     */
+    public function testConnectWithIPv4Address($ip)
+    {
+        $ip = '216.58.216.110';
+        $port = 80;
+
+        $this->resolver->expects($this->never())
+            ->method('resolve');
+
+        $this->clientConnector->expects($this->once())
+            ->method('connect')
+            ->with($ip, $port)
+            ->will($this->returnValue(
+                Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface'))
+            ));
+
+        $promise = $this->connector->connect($ip, $port);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run();
+    }
+
+    /**
+     * @return  array
+     */
+    public function getIPv6Addresses()
+    {
+        return [
+            ['::1'],
+            ['[::1]'],
+            ['2607:f8b0:4009:806::1001'],
+            ['[2001:db8::ff00:42:8329]']
+        ];
+    }
+
+    /**
+     * @dataProvider getIPv6Addresses
+     */
+    public function testConnectWithIPv6Address($ip)
+    {
+        $port = 80;
+
+        $this->resolver->expects($this->never())
+            ->method('resolve');
+
+        $this->clientConnector->expects($this->once())
+            ->method('connect')
+            ->with($ip, $port)
+            ->will($this->returnValue(
+                Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface'))
+            ));
+
+        $promise = $this->connector->connect($ip, $port);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run();
+    }
 }
