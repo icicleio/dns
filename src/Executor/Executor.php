@@ -273,7 +273,7 @@ class Executor implements ExecutorInterface
     /**
      * @return  int[]
      */
-    public static function getRecordTypes()
+    protected static function getRecordTypes()
     {
         return self::$recordTypes;
     }
