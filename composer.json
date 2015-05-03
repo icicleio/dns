@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "^0.2",
+        "icicleio/icicle": "~0.2 || ~0.3",
         "daverandom/libdns": "~1"
     },
     "require-dev": {
@@ -24,6 +24,12 @@
         "mockery/mockery": "0.9.*",
         "satooshi/php-coveralls": "dev-master",
         "symfony/yaml": "~2"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev",
+            "dev-development": "0.2-dev"
+        }
     },
     "autoload": {
         "psr-4": {
