@@ -10,6 +10,7 @@ use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Messages\Message;
+use Mockery;
 
 class ExecutorTest extends TestCase
 {
@@ -50,7 +51,11 @@ class ExecutorTest extends TestCase
      */
     public function createClient()
     {
-        return $this->getMock('Icicle\Socket\Client\ClientInterface');
+        $mock = Mockery::mock('Icicle\Socket\Client\ClientInterface');
+
+        $mock->shouldReceive('close');
+
+        return $mock;
     }
 
     /**
@@ -60,10 +65,9 @@ class ExecutorTest extends TestCase
      */
     public function createConnector(ClientInterface $client)
     {
-        $mock = $this->getMock('Icicle\Socket\Client\ConnectorInterface');
+        $mock = Mockery::mock('Icicle\Socket\Client\ConnectorInterface');
 
-        $mock->method('connect')
-            ->will($this->returnValue(Promise::resolve($client)));
+        $mock->shouldReceive('connect')->andReturn($client);
 
         return $mock;
     }
@@ -116,19 +120,17 @@ class ExecutorTest extends TestCase
 
     public function execute($type, $domain, $request, $response, array $answers = null, array $authority = null)
     {
-        $this->client->expects($this->once())
-            ->method('write')
-            ->will($this->returnCallback(function ($data) use (&$id, $request) {
+        $this->client->shouldReceive('write')
+            ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 return strlen($data);
-            }));
+            });
 
-        $this->client->expects($this->once())
-            ->method('read')
-            ->will($this->returnCallback(function () use (&$id, $response) {
+        $this->client->shouldReceive('read')
+            ->andReturnUsing(function () use (&$id, $response) {
                 return Promise::resolve($id . substr(base64_decode($response), self::ID_LENGTH));
-            }));
+            });
 
         $promise = $this->executor->execute($domain, $type);
 
@@ -188,19 +190,17 @@ class ExecutorTest extends TestCase
      */
     public function testInvalid($domain, $request, $response)
     {
-        $this->client->expects($this->once())
-            ->method('write')
-            ->will($this->returnCallback(function ($data) use (&$id, $request) {
+        $this->client->shouldReceive('write')
+            ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 return strlen($data);
-            }));
+            });
 
-        $this->client->expects($this->once())
-            ->method('read')
-            ->will($this->returnCallback(function () use (&$id, $response) {
+        $this->client->shouldReceive('read')
+            ->andReturnUsing(function () use (&$id, $response) {
                 return Promise::resolve($id . substr(base64_decode($response), 2));
-            }));
+            });
 
         $promise = $this->executor->execute($domain, 'A');
 
@@ -218,22 +218,20 @@ class ExecutorTest extends TestCase
      */
     public function testInvalidResponseId($domain, $request, $response)
     {
-        $this->client->expects($this->once())
-            ->method('write')
-            ->will($this->returnCallback(function ($data) use (&$id, $request) {
+        $this->client->shouldReceive('write')
+            ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 return strlen($data);
-            }));
+            });
 
-        $this->client->expects($this->once())
-            ->method('read')
-            ->will($this->returnCallback(function () use (&$id, $response) {
+        $this->client->shouldReceive('read')
+            ->andReturnUsing(function () use (&$id, $response) {
                 $id = unpack('n', $id)[1];
                 $id += 1;
                 $id = pack('n', $id);
                 return Promise::resolve($id . substr(base64_decode($response), self::ID_LENGTH));
-            }));
+            });
 
         $promise = $this->executor->execute($domain, 'NS');
 
@@ -252,9 +250,13 @@ class ExecutorTest extends TestCase
 
     public function testEmptyStringReceivedAsResponse()
     {
-        $this->client->expects($this->once())
-            ->method('read')
-            ->will($this->returnValue(Promise::resolve('')));
+        $this->client->shouldReceive('write')
+            ->andReturnUsing(function ($data) {
+                return Promise::resolve(strlen($data));
+            });
+
+        $this->client->shouldReceive('read')
+            ->andReturn(Promise::resolve(''));
 
         $promise = $this->executor->execute('example.com', 'A');
 
@@ -272,9 +274,13 @@ class ExecutorTest extends TestCase
      */
     public function testInvalidRetryCount()
     {
-        $this->client->expects($this->once())
-            ->method('read')
-            ->will($this->returnValue(Promise::resolve('')));
+        $this->client->shouldReceive('write')
+            ->andReturnUsing(function ($data) {
+                return Promise::resolve(strlen($data));
+            });
+
+        $this->client->shouldReceive('read')
+            ->andReturn(Promise::resolve(''));
 
         $promise = $this->executor->execute('example.com', 'A', 1, -1);
 
@@ -287,9 +293,13 @@ class ExecutorTest extends TestCase
     {
         $timeout = 0.1;
 
-        $this->client->expects($this->once())
-            ->method('read')
-            ->will($this->returnValue(Promise::reject(new TimeoutException('Socket timed out.'))));
+        $this->client->shouldReceive('write')
+            ->andReturnUsing(function ($data) {
+                return Promise::resolve(strlen($data));
+            });
+
+        $this->client->shouldReceive('read')
+            ->andReturn(Promise::reject(new TimeoutException('Socket timed out.')));
 
         $promise = $this->executor->execute('example.com', 'A', $timeout, 0);
 
@@ -307,9 +317,14 @@ class ExecutorTest extends TestCase
         $timeout = 0.1;
         $retries = 3;
 
-        $this->client->expects($this->exactly($retries + 1))
-            ->method('read')
-            ->will($this->returnValue(Promise::reject(new TimeoutException('Socket timed out.'))));
+        $this->client->shouldReceive('write')
+            ->andReturnUsing(function ($data) {
+                return Promise::resolve(strlen($data));
+            });
+
+        $this->client->shouldReceive('read')
+            ->times(3)
+            ->andReturn(Promise::reject(new TimeoutException('Socket timed out.')));
 
         $promise = $this->executor->execute('example.com', 'A', $timeout, $retries);
 
@@ -327,24 +342,29 @@ class ExecutorTest extends TestCase
      */
     public function testServerRespondsAfterRetry($domain, $request, $response)
     {
-        $this->client->method('write')
-            ->will($this->returnCallback(function ($data) use (&$id, $request) {
+        $timeout = 0.1;
+        $retries = 3;
+
+        $this->client->shouldReceive('write')
+            ->times($retries)
+            ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 return strlen($data);
-            }));
+            });
 
-        $this->client->method('read')
-            ->will($this->returnCallback(function () use (&$id, $response) {
+        $this->client->shouldReceive('read')
+            ->times($retries)
+            ->andReturnUsing(function () use (&$id, $response) {
                 static $initial = true;
                 if ($initial) {
                     $initial = false;
                     return Promise::reject(new TimeoutException('Socket timed out.'));
                 }
                 return Promise::resolve($id . substr(base64_decode($response), self::ID_LENGTH));
-            }));
+            });
 
-        $promise = $this->executor->execute($domain, 'A');
+        $promise = $this->executor->execute($domain, 'A', $timeout, $retries);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

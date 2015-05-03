@@ -134,38 +134,42 @@ class Executor implements ExecutorInterface
         $data = $this->encoder->encode($request);
 
         /** @var \Icicle\Socket\Client\ClientInterface $client */
-        $client = (yield $this->connect());
+        $client = (yield $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]));
 
-        $attempt = 0;
+        try {
+            $attempt = 0;
 
-        do {
-            try {
-                yield $client->write($data);
-
-                $response = (yield $client->read(self::MAX_PACKET_SIZE, null, $timeout));
-
+            do {
                 try {
-                    $response = $this->decoder->decode($response);
-                } catch (\Exception $exception) {
-                    throw new FailureException($exception); // Wrap in more specific exception.
+                    yield $client->write($data);
+
+                    $response = (yield $client->read(self::MAX_PACKET_SIZE, null, $timeout));
+
+                    try {
+                        $response = $this->decoder->decode($response);
+                    } catch (\Exception $exception) {
+                        throw new FailureException($exception); // Wrap in more specific exception.
+                    }
+
+                    if (0 !== $response->getResponseCode()) {
+                        throw new ResponseCodeException($response);
+                    }
+
+                    if ($response->getId() !== $request->getId()) {
+                        throw new ResponseIdException($response);
+                    }
+
+                    yield $response;
+                    return;
+                } catch (TimeoutException $exception) {
+                    // Ignore TimeoutException and try the request again.
                 }
+            } while (++$attempt <= $retries);
 
-                if (0 !== $response->getResponseCode()) {
-                    throw new ResponseCodeException($response);
-                }
-
-                if ($response->getId() !== $request->getId()) {
-                    throw new ResponseIdException($response);
-                }
-
-                yield $response;
-                return;
-            } catch (TimeoutException $exception) {
-                // Ignore TimeoutException and try the request again.
-            }
-        } while (++$attempt <= $retries);
-
-        throw new NoResponseException('No response from server.');
+            throw new NoResponseException('No response from server.');
+        } finally {
+            $client->close();
+        }
     }
 
     /**
@@ -219,15 +223,5 @@ class Executor implements ExecutorInterface
     protected function createId()
     {
         return mt_rand(0, 0xffff);
-    }
-
-    /**
-     * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @see     \Icicle\Socket\Client\ConnectorInterface::connect()
-     */
-    protected function connect()
-    {
-        return $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]);
     }
 }

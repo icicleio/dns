@@ -7,6 +7,7 @@ use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Tests\Dns\TestCase;
+use Mockery;
 
 class ConnectorTest extends TestCase
 {
@@ -36,12 +37,12 @@ class ConnectorTest extends TestCase
 
     protected function createResolver()
     {
-        return $this->getMock('Icicle\Dns\Resolver\ResolverInterface');
+        return Mockery::mock('Icicle\Dns\Resolver\ResolverInterface');
     }
 
     protected function createClientConnector()
     {
-        return $this->getMock('Icicle\Socket\Client\ConnectorInterface');
+        return Mockery::mock('Icicle\Socket\Client\ConnectorInterface');
     }
 
     public function testConnect()
@@ -51,19 +52,15 @@ class ConnectorTest extends TestCase
         $timeout = 0.1;
         $retries = 2;
         $ips = ['127.0.0.1'];
-        $options = ['timeout' => 0.1, 'name' => '*.example.com'];
+        $options = ['timeout' => 0.1, 'cn' => '*.example.com'];
 
-        $this->resolver->expects($this->once())
-            ->method('resolve')
-            ->with($domain, $timeout, $retries)
-            ->will($this->returnValue($ips));
+        $this->resolver->shouldReceive('resolve')
+            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
+            ->andReturn($ips);
 
-        $this->clientConnector->expects($this->once())
-            ->method('connect')
-            ->with($ips[0], $port, $options)
-            ->will($this->returnValue(
-                Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface'))
-            ));
+        $this->clientConnector->shouldReceive('connect')
+            ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
+            ->andReturn(Promise::resolve(Mockery::mock('Icicle\Socket\Client\ClientInterface')));
 
         $promise = $this->connector->connect($domain, $port, $options, $timeout, $retries);
 
@@ -88,17 +85,13 @@ class ConnectorTest extends TestCase
         $ips = ['127.0.0.1'];
         $options = ['timeout' => 0.1, 'name' => '*.example.com'];
 
-        $this->resolver->expects($this->once())
-            ->method('resolve')
-            ->with($domain, $timeout, $retries)
-            ->will($this->returnValue($ips));
+        $this->resolver->shouldReceive('resolve')
+            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
+            ->andReturn($ips);
 
-        $this->clientConnector->expects($this->once())
-            ->method('connect')
-            ->with($ips[0], $port, $options)
-            ->will($this->returnValue(
-                Promise::reject(new TimeoutException())
-            ));
+        $this->clientConnector->shouldReceive('connect')
+            ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
+            ->andReturn(Promise::reject(new TimeoutException()));
 
         $promise = $this->connector->connect($domain, $port, $options, $timeout, $retries);
 
@@ -120,21 +113,20 @@ class ConnectorTest extends TestCase
         $port = 443;
         $ips = ['127.0.0.1', '127.0.0.2', '127.0.0.3'];
 
-        $this->resolver->expects($this->once())
-            ->method('resolve')
-            ->with($domain)
-            ->will($this->returnValue($ips));
+        $this->resolver->shouldReceive('resolve')
+            ->with(Mockery::mustBe($domain), Mockery::any(), Mockery::type('integer'))
+            ->andReturn($ips);
 
-        $this->clientConnector->expects($this->exactly(2))
-            ->method('connect')
-            ->will($this->returnCallback(function () {
+        $this->clientConnector->shouldReceive('connect')
+            ->times(2)
+            ->andReturnUsing(function () {
                 static $initial = true;
                 if ($initial) {
                     $initial = false;
                     return Promise::reject(new FailureException());
                 }
-                return Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface'));
-            }));
+                return Promise::resolve(Mockery::mock('Icicle\Socket\Client\ClientInterface'));
+            });
 
         $promise = $this->connector->connect($domain, $port);
 
@@ -156,14 +148,12 @@ class ConnectorTest extends TestCase
         $port = 80;
         $ips = ['127.0.0.1'];
 
-        $this->resolver->expects($this->once())
-            ->method('resolve')
-            ->with($domain)
-            ->will($this->returnValue($ips));
+        $this->resolver->shouldReceive('resolve')
+            ->with(Mockery::mustBe($domain), Mockery::any(), Mockery::type('integer'))
+            ->andReturn($ips);
 
-        $this->clientConnector->expects($this->once())
-            ->method('connect')
-            ->with($ips[0], $port, ['name' => $domain]);
+        $this->clientConnector->shouldReceive('connect')
+            ->with(identicalTo($ips[0]), identicalTo($port), identicalTo(['name' => $domain]));
 
         $promise = $this->connector->connect($domain, $port);
 
@@ -192,15 +182,12 @@ class ConnectorTest extends TestCase
         $ip = '216.58.216.110';
         $port = 80;
 
-        $this->resolver->expects($this->never())
-            ->method('resolve');
+        $this->resolver->shouldReceive('resolve')
+            ->never();
 
-        $this->clientConnector->expects($this->once())
-            ->method('connect')
-            ->with($ip, $port)
-            ->will($this->returnValue(
-                Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface'))
-            ));
+        $this->clientConnector->shouldReceive('connect')
+            ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
+            ->andReturn(Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface')));
 
         $promise = $this->connector->connect($ip, $port);
 
@@ -233,15 +220,12 @@ class ConnectorTest extends TestCase
     {
         $port = 80;
 
-        $this->resolver->expects($this->never())
-            ->method('resolve');
+        $this->resolver->shouldReceive('resolve')
+            ->never();
 
-        $this->clientConnector->expects($this->once())
-            ->method('connect')
-            ->with($ip, $port)
-            ->will($this->returnValue(
-                Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface'))
-            ));
+        $this->clientConnector->shouldReceive('connect')
+            ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
+            ->andReturn(Promise::resolve($this->getMock('Icicle\Socket\Client\ClientInterface')));
 
         $promise = $this->connector->connect($ip, $port);
 
