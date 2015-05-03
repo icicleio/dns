@@ -22,7 +22,54 @@ class Executor implements ExecutorInterface
     const PROTOCOL = 'udp';
     const DEFAULT_PORT = 53;
     const MAX_PACKET_SIZE = 512;
-    
+
+    private static $recordTypes = [
+        'A'          => 1,
+        'AAAA'       => 28,
+        'ALL'        => 255,
+        'AFSDB'      => 18,
+        'ANY'        => 255,
+        'APL'        => 42,
+        'AXFR'       => 252,
+        'CAA'        => 257,
+        'CDNSKEY'    => 60,
+        'CDS'        => 59,
+        'CERT'       => 37,
+        'CNAME'      => 5,
+        'DHCID'      => 49,
+        'DLV'        => 32769,
+        'DNAME'      => 39,
+        'DNSKEY'     => 48,
+        'DS'         => 43,
+        'HIP'        => 55,
+        'IPSECKEY'   => 45,
+        'IXFR'       => 251,
+        'KEY'        => 25,
+        'KX'         => 36,
+        'LOC'        => 29,
+        'MAILB'      => 253,
+        'MAILA'      => 254,
+        'MX'         => 15,
+        'NAPTR'      => 35,
+        'NS'         => 2,
+        'NSEC'       => 47,
+        'NSEC3'      => 50,
+        'NSEC3PARAM' => 51,
+        'OPT'        => 41,
+        'PTR'        => 12,
+        'RRSIG'      => 46,
+        'SIG'        => 24,
+        'SOA'        => 6,
+        'SRV'        => 33,
+        'SSHFP'      => 44,
+        'TA'         => 32768,
+        'TKEY'       => 249,
+        'TLSA'       => 52,
+        'TSIG'       => 250,
+        'TXT'        => 16,
+        '*'          => 255,
+    ];
+
     /**
      * @var string IP address of DNS server.
      */
@@ -182,13 +229,11 @@ class Executor implements ExecutorInterface
     {
         if (!is_int($type)) {
             $type = strtoupper($type);
-            // Error reporting suppressed since constant() emits an E_WARNING if constant not found.
-            // Check for null === $value handles error.
-            $value = @constant('\LibDNS\Records\ResourceQTypes::' . $type);
-            if (null === $value) {
+            $types = static::getRecordTypes();
+            if (!array_key_exists($type, $types)) {
                 throw new InvalidTypeException($type);
             }
-            $type = $value;
+            $type = $types[$type];
         } elseif (0 > $type || 0xffff < $type) {
             throw new InvalidTypeException($type);
         }
@@ -223,5 +268,13 @@ class Executor implements ExecutorInterface
     protected function createId()
     {
         return mt_rand(0, 0xffff);
+    }
+
+    /**
+     * @return  int[]
+     */
+    public static function getRecordTypes()
+    {
+        return self::$recordTypes;
     }
 }
