@@ -6,6 +6,7 @@ use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop\Loop;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Records\ResourceQTypes;
+use Mockery;
 
 class ResolverTest extends TestCase
 {
@@ -31,7 +32,7 @@ class ResolverTest extends TestCase
      */
     public function createExecutor()
     {
-        return $this->getMock('Icicle\Dns\Executor\ExecutorInterface');
+        return Mockery::mock('Icicle\Dns\Executor\ExecutorInterface');
     }
 
     /**
@@ -39,10 +40,9 @@ class ResolverTest extends TestCase
      */
     public function testResolve($domain, $request, $response, array $answers = null, $authority = null)
     {
-        $this->executor->expects($this->once())
-            ->method('execute')
-            ->with($domain, ResourceQTypes::A)
-            ->will($this->returnValue($this->createMessage($answers, $authority)));
+        $this->executor->shouldReceive('execute')
+            ->with(Mockery::mustBe($domain), Mockery::mustBe(ResourceQTypes::A), Mockery::any(), Mockery::type('integer'))
+            ->andReturn($this->createMessage($answers, $authority));
 
         $promise = $this->resolver->resolve($domain);
 
@@ -70,9 +70,8 @@ class ResolverTest extends TestCase
     {
         $domain = 'example.com';
 
-        $this->executor->expects($this->once())
-            ->method('execute')
-            ->will($this->returnValue($this->createMessage()));
+        $this->executor->shouldReceive('execute')
+            ->andReturn($this->createMessage());
 
         $promise = $this->resolver->resolve($domain);
 
@@ -91,8 +90,8 @@ class ResolverTest extends TestCase
 
     public function testLocalhost()
     {
-        $this->executor->expects($this->never())
-            ->method('execute');
+        $this->executor->shouldReceive('execute')
+            ->never();
 
         $promise = $this->resolver->resolve('localhost');
 

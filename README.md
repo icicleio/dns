@@ -1,11 +1,11 @@
 # Asynchronous DNS for Icicle
 
-This library is a component for [Icicle](//github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library returns [promises](//github.com/icicleio/Icicle/tree/master/src/Promise) from asynchronous operations that may be used to build [coroutines](//github.com/icicleio/Icicle/tree/master/src/Coroutine) to make writing asynchronous code more like writing synchronous code.
+This library is a component for [Icicle](//github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library returns [promises](//github.com/icicleio/Icicle/wiki/Promises) from asynchronous operations that may be used to build [coroutines](//github.com/icicleio/Icicle/wiki/Coroutines) to make writing asynchronous code more like writing synchronous code.
 
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Dns/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Dns)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Dns.svg?style=flat-square)](https://coveralls.io/r/icicleio/Dns)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.1.0-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.1.1-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/dns.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
@@ -71,7 +71,7 @@ Loop::run();
 - [Resolver](#resolver) - Resolves the IP address for a domain name.
 - [Connector](#connector) - Connects to a host and port.
 
-All references to `PromiseInterface` in the documentation below are to `Icicle\Promise\PromiseInterface`, part of the promises component of [Icicle](//github.com/icicleio/Icicle). For more information on promises, see the [Promise API documentation](//github.com/icicleio/Icicle/tree/master/src/Promise) for more information.
+All references to `PromiseInterface` in the documentation below are to `Icicle\Promise\PromiseInterface`, part of the promises component of [Icicle](//github.com/icicleio/Icicle). For more information on promises, see the [Promise API documentation](//github.com/icicleio/Icicle/wiki/Promises) for more information.
 
 This library uses [LibDNS](//github.com/DaveRandom/LibDNS) to create and parse DNS messages. Unfortunately the documentation for this library is currently limited to DocComments in the source code. If using only the resolver and connector components of this library, there is no need to worry about how this library works. The executor component returns promises that are resolved with `LibDNS\Messages\Message` instances, representing the response from the DNS server. Using these objects is simple and will be described in the executor section below.
 
@@ -241,7 +241,8 @@ PromiseInterface $connectorInterface->connect(
     int $port,
     array $options = null,
     float|int $timeout = 2,
-    int $retries = 5)
+    int $retries = 5
+)
 ```
 
 `Icicle\Dns\Connector\Connector` will attempt to connect to one of the IP addresses found for a given host name. If the server at that IP is unresponsive, the connector will attempt to establish a connection to the next IP in the list until a server accepts the connection. Only if the connector is unable to connect to all of the IPs will it reject the promise returned from `connect()`. The constructor also optionally accepts an instance of `Icicle\Socket\Client\ConnectorInterface` if custom behavior is desired when connecting to the resolved host.
