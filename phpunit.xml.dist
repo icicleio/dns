@@ -11,11 +11,10 @@
     convertWarningsToExceptions="true"
     processIsolation="false"
     stopOnFailure="false"
-    strict="true"
 >
     <testsuites>
         <testsuite name="Icicle DNS">
-            <directory phpVersion="5.5.0" phpVersionOperator=">=">tests/Dns</directory>
+            <directory>tests/Dns</directory>
         </testsuite>
     </testsuites>
     <filter>
@@ -25,7 +24,6 @@
     </filter>
     <logging>
         <log type="coverage-html" target="build/coverage" title="Icicle" highlight="true"/>
-        <log type="coverage-xml" target="build/logs/coverage"/>
         <log type="coverage-clover" target="build/logs/clover.xml"/>
     </logging>
 </phpunit>
