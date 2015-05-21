@@ -1,8 +1,16 @@
 # Changelog
 
+### v0.1.2
+
+- Changes
+    - Reorganized tests and made updates to test loading based on changes made in Icicle v0.4.0.
+
+---
+
 ### v0.1.1
 
-- Fixed bug in Executor where connection was not being closed.
+- Bug Fixes
+    - Fixed bug in Executor where connection was not being closed.
 
 ---
 
