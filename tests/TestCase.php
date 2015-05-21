@@ -13,7 +13,7 @@ class TestCase extends \Icicle\Tests\TestCase
      */
     public function getARecords()
     {
-        return Yaml::parse(file_get_contents(dirname(__DIR__) . '/data/a.yml'));
+        return Yaml::parse(file_get_contents(__DIR__ . '/data/a.yml'));
     }
 
     /**
@@ -21,7 +21,7 @@ class TestCase extends \Icicle\Tests\TestCase
      */
     public function getMxRecords()
     {
-        return Yaml::parse(file_get_contents(dirname(__DIR__) . '/data/mx.yml'));
+        return Yaml::parse(file_get_contents(__DIR__ . '/data/mx.yml'));
     }
 
     /**
@@ -29,7 +29,7 @@ class TestCase extends \Icicle\Tests\TestCase
      */
     public function getNsRecords()
     {
-        return Yaml::parse(file_get_contents(dirname(__DIR__) . '/data/ns.yml'));
+        return Yaml::parse(file_get_contents(__DIR__ . '/data/ns.yml'));
     }
 
     /**
@@ -37,7 +37,7 @@ class TestCase extends \Icicle\Tests\TestCase
      */
     public function getInvalid()
     {
-        return Yaml::parse(file_get_contents(dirname(__DIR__) . '/data/invalid.yml'));
+        return Yaml::parse(file_get_contents(__DIR__ . '/data/invalid.yml'));
     }
 
     /**

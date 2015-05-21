@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "~0.2 || ~0.3",
+        "icicleio/icicle": "0.2 - 0.4",
         "daverandom/libdns": "~1"
     },
     "require-dev": {
@@ -34,6 +34,12 @@
     "autoload": {
         "psr-4": {
             "Icicle\\Dns\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Icicle\\Tests\\": "vendor/icicleio/icicle/tests",
+            "Icicle\\Tests\\Dns\\": "tests"
         }
     }
 }
