@@ -4,7 +4,7 @@ namespace Icicle\Dns\Resolver;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Promise\Promise;
+use Icicle\Promise;
 use LibDNS\Records\ResourceTypes;
 
 class Resolver implements ResolverInterface
@@ -31,7 +31,7 @@ class Resolver implements ResolverInterface
         $retries = ExecutorInterface::DEFAULT_RETRIES
     ) {
         if (strtolower($domain) === 'localhost') {
-            return Promise::resolve(['127.0.0.1']);
+            return Promise\resolve(['127.0.0.1']);
         }
 
         return new Coroutine($this->run($domain, $timeout, $retries));

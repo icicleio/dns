@@ -3,10 +3,10 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Icicle\Coroutine\Coroutine;
+use Icicle\Coroutine;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 if (2 > $argc) {
     throw new InvalidArgumentException('Too few arguments provided. Usage: {DomainName}');
@@ -14,7 +14,7 @@ if (2 > $argc) {
 
 $domain = $argv[1];
 
-$coroutine = Coroutine::call(function ($query, $timeout = 1) {
+$coroutine = Coroutine\create(function ($query, $timeout = 1) {
     echo "Query: {$query}:\n";
     
     $resolver = new Resolver(new Executor('8.8.8.8'));
@@ -30,4 +30,4 @@ $coroutine->capture(function (Exception $e) {
     echo "Exception: {$e->getMessage()}\n";
 });
 
-Loop::run();
+Loop\run();

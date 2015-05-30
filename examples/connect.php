@@ -3,15 +3,15 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Icicle\Coroutine\Coroutine;
+use Icicle\Coroutine;
 use Icicle\Dns\Connector\Connector;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
-$timer = Loop::periodic(0.01, function () { echo "Waiting... " . microtime(true) . "\n"; });
+$timer = Loop\periodic(0.01, function () { echo "Waiting... " . microtime(true) . "\n"; });
 
-$coroutine = Coroutine::call(function () {
+$coroutine = Coroutine\create(function () {
     echo "Connecting to google.com...\n";
     
     $connector = new Connector(new Resolver(new Executor('8.8.8.8')));
@@ -46,4 +46,4 @@ $coroutine
     }
 );
 
-Loop::run();
+Loop\run();

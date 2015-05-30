@@ -3,12 +3,11 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Executor\CachingExecutor;
+use Icicle\Coroutine;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Executor\MultiExecutor;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 if (3 > $argc) {
     throw new InvalidArgumentException('Too few arguments provided. Usage: {DomainName} {RecordType}');
@@ -17,7 +16,7 @@ if (3 > $argc) {
 $domain = $argv[1];
 $type = $argv[2];
 
-$coroutine = Coroutine::call(function ($query, $type, $timeout = ExecutorInterface::DEFAULT_TIMEOUT) {
+$coroutine = Coroutine\create(function ($query, $type, $timeout = ExecutorInterface::DEFAULT_TIMEOUT) {
     $executor = new MultiExecutor();
     $executor->add(new Executor('8.8.8.8'));
     $executor->add(new Executor('8.8.4.4'));
@@ -47,4 +46,4 @@ $coroutine->capture(function (Exception $e) {
     echo "Exception of type {$class}: {$e->getMessage()}\n";
 });
 
-Loop::run();
+Loop\run();
