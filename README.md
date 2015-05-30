@@ -5,7 +5,7 @@ This library is a component for [Icicle](//github.com/icicleio/Icicle), providin
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Dns/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Dns)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Dns.svg?style=flat-square)](https://coveralls.io/r/icicleio/Dns)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.1.2-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.2.0-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/dns.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
@@ -30,7 +30,7 @@ You can also manually edit `composer.json` to add this library as a project requ
 // composer.json
 {
     "require": {
-        "icicleio/dns": "0.1.*"
+        "icicleio/dns": "0.2.*"
     }
 }
 ```
@@ -42,7 +42,7 @@ The example below uses a resolver to asynchronously find the IP address for the 
 ```php
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 $resolver = new Resolver(new Executor('8.8.8.8'));
 
@@ -59,7 +59,7 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
 
 ## Documentation
@@ -133,7 +133,7 @@ Below is an example of how an executor can be used to find the NS records for a 
 
 ```php
 use Icicle\Dns\Executor\Executor;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use LibDNS\Messages\Message;
 
 $executor = new Executor('8.8.8.8');
@@ -151,7 +151,7 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
 
 ### MultiExecutor
@@ -161,7 +161,7 @@ The `Icicle\Dns\Executor\MultiExecutor` class can be used to combine multiple ex
 ```php
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\MultiExecutor;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use LibDNS\Messages\Message;
 
 $executor = new MultiExecutor();
@@ -183,7 +183,7 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
 
 Queries using the above executor will automatically send requests to the second name server if the first does not respond. Subsequent queries are initially sent to the last server that successfully responded to a query.
@@ -209,7 +209,7 @@ The `Icicle\Resolver\Resolver` class is constructed by passing an `Icicle\Execut
 ```php
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 $resolver = new Resolver(new Executor('8.8.8.8'));
 
@@ -226,7 +226,7 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
 
 ## Connector
@@ -253,7 +253,7 @@ PromiseInterface $connectorInterface->connect(
 use Icicle\Dns\Connector\Connector;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Client\ClientInterface;
 
 $connector = new Connector(new Resolver(new Executor('8.8.8.8')));
@@ -270,5 +270,5 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
