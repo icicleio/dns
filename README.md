@@ -1,11 +1,11 @@
 # Asynchronous DNS for Icicle
 
-This library is a component for [Icicle](//github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library returns [promises](//github.com/icicleio/Icicle/wiki/Promises) from asynchronous operations that may be used to build [coroutines](//github.com/icicleio/Icicle/wiki/Coroutines) to make writing asynchronous code more like writing synchronous code.
+This library is a component for [Icicle](https://github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library uses [Promises](https://github.com/icicleio/Icicle/wiki/Promises) and [Generators](http://www.php.net/manual/en/language.generators.overview.php) for asynchronous operations that may be used to build [Coroutines](//github.com/icicleio/Icicle/wiki/Coroutines) to make writing asynchronous code more like writing synchronous code.
 
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Dns/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Dns)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Dns.svg?style=flat-square)](https://coveralls.io/r/icicleio/Dns)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.1.2-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.3.0-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/dns.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
@@ -30,7 +30,7 @@ You can also manually edit `composer.json` to add this library as a project requ
 // composer.json
 {
     "require": {
-        "icicleio/dns": "0.1.*"
+        "icicleio/dns": "0.3.*"
     }
 }
 ```
@@ -42,24 +42,25 @@ The example below uses a resolver to asynchronously find the IP address for the 
 ```php
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 $resolver = new Resolver(new Executor('8.8.8.8'));
 
-$promise = $resolver->resolve('icicle.io');
-
-$promise->then(
-    function (array $ips) {
+$generator = function ($domain) use ($resolver) {
+    try {
+        $ips = (yield $resolver->resolve($domain));
+        
         foreach ($ips as $ip) {
             echo "IP: {$ip}\n";
         }
-    },
-    function (Exception $exception) {
+    } catch (Exception $exception) {
         echo "Error when executing query: {$exception->getMessage()}\n";
     }
-);
+};
 
-Loop::run();
+$coroutine = new Coroutine($generator('icicle.io'));
+
+Loop\run();
 ```
 
 ## Documentation
@@ -71,7 +72,9 @@ Loop::run();
 - [Resolver](#resolver) - Resolves the IP address for a domain name.
 - [Connector](#connector) - Connects to a host and port.
 
-All references to `PromiseInterface` in the documentation below are to `Icicle\Promise\PromiseInterface`, part of the promises component of [Icicle](//github.com/icicleio/Icicle). For more information on promises, see the [Promise API documentation](//github.com/icicleio/Icicle/wiki/Promises) for more information.
+All references to `PromiseInterface` in the documentation below are to `Icicle\Promise\PromiseInterface`, part of the promises component of [Icicle](https://github.com/icicleio/Icicle). For more information on promises, see the [Promise API documentation](https://github.com/icicleio/Icicle/wiki/Promises) for more information.
+
+Methods returning a `Generator` can be used to create a [Coroutine](https://github.com/icicleio/Icicle/wiki/Coroutines) (e.g., `new Coroutine($executor->execute(...))`) or yielded within another Coroutine (use `yield from` in PHP 7 for better performance).
 
 This library uses [LibDNS](//github.com/DaveRandom/LibDNS) to create and parse DNS messages. Unfortunately the documentation for this library is currently limited to DocComments in the source code. If using only the resolver and connector components of this library, there is no need to worry about how this library works. The executor component returns promises that are resolved with `LibDNS\Messages\Message` instances, representing the response from the DNS server. Using these objects is simple and will be described in the executor section below.
 
@@ -90,7 +93,7 @@ Executors are the foundation of the DNS component, performing any DNS query and 
 Each executor implements `Icicle\Dns\Executor\ExecutorInterface` that defines a single method, `execute()`.
 
 ```php
-PromiseInterface $executorInterface->execute(
+Generator $executorInterface->execute(
     string $domain,
     string|int $type,
     float|int $timeout = 2,
@@ -132,15 +135,16 @@ DNS records in the traversable `LibDNS\Records\RecordCollection` objects are rep
 Below is an example of how an executor can be used to find the NS records for a domain.
 
 ```php
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Executor\Executor;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use LibDNS\Messages\Message;
 
 $executor = new Executor('8.8.8.8');
 
-$promise = $executor->execute('google.com', 'NS');
+$coroutine = new Coroutine($executor->execute('google.com', 'NS'));
 
-$promise->then(
+$coroutine->then(
     function (Message $message) {
         foreach ($message->getAnswerRecords() as $resource) {
             echo "TTL: {$resource->getTTL()} Value: {$resource->getData()}\n";
@@ -151,7 +155,7 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
 
 ### MultiExecutor
@@ -159,9 +163,10 @@ Loop::run();
 The `Icicle\Dns\Executor\MultiExecutor` class can be used to combine multiple executors to send queries to several name servers so queries can be resolved even if some name servers stop responding.
 
 ```php
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\MultiExecutor;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use LibDNS\Messages\Message;
 
 $executor = new MultiExecutor();
@@ -170,9 +175,9 @@ $executor->add(new Executor('8.8.8.8'));
 $executor->add(new Executor('8.8.4.4'));
 
 // Executor will send query to 8.8.4.4 if 8.8.8.8 does not respond.
-$promise = $executor->execute('google.com', 'MX');
+$coroutine = new Coroutine($executor->execute('google.com', 'MX'));
 
-$promise->then(
+$coroutine->then(
     function (Message $message) {
         foreach ($message->getAnswerRecords() as $resource) {
             echo "TTL: {$resource->getTTL()} Value: {$resource->getData()}\n";
@@ -183,7 +188,7 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
 
 Queries using the above executor will automatically send requests to the second name server if the first does not respond. Subsequent queries are initially sent to the last server that successfully responded to a query.
@@ -193,7 +198,7 @@ Queries using the above executor will automatically send requests to the second 
 A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the promise returned from `resolve()` with an array of IP addresses (even if only one IP address is found, the promise is still resolved with an array).
 
 ```php
-PromiseInterface $resolverInterface->resolve(
+Generator $resolverInterface->resolve(
     string $domain,
     float|int $timeout = 2,
     int $retries = 5
@@ -207,15 +212,16 @@ The `Icicle\Resolver\Resolver` class is constructed by passing an `Icicle\Execut
 ##### Example
 
 ```php
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 $resolver = new Resolver(new Executor('8.8.8.8'));
 
-$promise = $resolver->resolve('google.com');
+$coroutine = new Coroutine($resolver->resolve('google.com'));
 
-$promise->then(
+$coroutine->then(
     function (array $ips) {
         foreach ($ips as $ip) {
             echo "IP: {$ip}\n";
@@ -226,7 +232,7 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```
 
 ## Connector
@@ -253,7 +259,7 @@ PromiseInterface $connectorInterface->connect(
 use Icicle\Dns\Connector\Connector;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Client\ClientInterface;
 
 $connector = new Connector(new Resolver(new Executor('8.8.8.8')));
@@ -270,5 +276,5 @@ $promise->then(
     }
 );
 
-Loop::run();
+Loop\run();
 ```

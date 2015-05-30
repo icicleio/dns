@@ -1,11 +1,12 @@
 <?php
 namespace Icicle\Tests\Dns\Executor;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\InvalidTypeException;
 use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Dns\Executor\Executor;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Tests\Dns\TestCase;
@@ -86,7 +87,7 @@ class ExecutorTest extends TestCase
     {
         $type = -1;
 
-        $promise = $this->executor->execute('example.com', $type);
+        $coroutine = new Coroutine($this->executor->execute('example.com', $type));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -95,16 +96,16 @@ class ExecutorTest extends TestCase
                 $this->assertSame($type, $exception->getType());
             }));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testInvalidStringType()
     {
         $type = 'Q';
 
-        $promise = $this->executor->execute('example.com', $type);
+        $coroutine = new Coroutine($this->executor->execute('example.com', $type));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -113,9 +114,9 @@ class ExecutorTest extends TestCase
                 $this->assertSame($type, $exception->getType());
             }));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function execute($type, $domain, $request, $response, array $answers = null, array $authority = null)
@@ -129,10 +130,10 @@ class ExecutorTest extends TestCase
 
         $this->client->shouldReceive('read')
             ->andReturnUsing(function () use (&$id, $response) {
-                return Promise::resolve($id . substr(base64_decode($response), self::ID_LENGTH));
+                return Promise\resolve($id . substr(base64_decode($response), self::ID_LENGTH));
             });
 
-        $promise = $this->executor->execute($domain, $type);
+        $coroutine = new Coroutine($this->executor->execute($domain, $type));
 
         $callback = function (Message $message) use ($answers, $authority) {
             $this->assertInstanceOf('LibDNS\Messages\Message', $message);
@@ -156,9 +157,9 @@ class ExecutorTest extends TestCase
             }
         };
 
-        $promise->done($callback, $this->createCallback(0));
+        $coroutine->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -199,18 +200,18 @@ class ExecutorTest extends TestCase
 
         $this->client->shouldReceive('read')
             ->andReturnUsing(function () use (&$id, $response) {
-                return Promise::resolve($id . substr(base64_decode($response), 2));
+                return Promise\resolve($id . substr(base64_decode($response), 2));
             });
 
-        $promise = $this->executor->execute($domain, 'A');
+        $coroutine = new Coroutine($this->executor->execute($domain, 'A'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('Icicle\Dns\Exception\ExceptionInterface'));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -230,10 +231,10 @@ class ExecutorTest extends TestCase
                 $id = unpack('n', $id)[1];
                 $id += 1;
                 $id = pack('n', $id);
-                return Promise::resolve($id . substr(base64_decode($response), self::ID_LENGTH));
+                return Promise\resolve($id . substr(base64_decode($response), self::ID_LENGTH));
             });
 
-        $promise = $this->executor->execute($domain, 'NS');
+        $coroutine = new Coroutine($this->executor->execute($domain, 'NS'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -243,30 +244,30 @@ class ExecutorTest extends TestCase
                 $this->assertInstanceOf('LibDNS\Messages\Message', $response);
             }));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testEmptyStringReceivedAsResponse()
     {
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise::resolve(strlen($data));
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')
-            ->andReturn(Promise::resolve(''));
+            ->andReturn(Promise\resolve(''));
 
-        $promise = $this->executor->execute('example.com', 'A');
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('Icicle\Dns\Exception\FailureException'));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -276,17 +277,17 @@ class ExecutorTest extends TestCase
     {
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise::resolve(strlen($data));
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')
-            ->andReturn(Promise::resolve(''));
+            ->andReturn(Promise\resolve(''));
 
-        $promise = $this->executor->execute('example.com', 'A', 1, -1);
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', 1, -1));
 
-        $promise->done($this->createCallback(0), $this->createCallback(1));
+        $coroutine->done($this->createCallback(0), $this->createCallback(1));
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testServerDoesNotRespond()
@@ -295,21 +296,21 @@ class ExecutorTest extends TestCase
 
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise::resolve(strlen($data));
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')
-            ->andReturn(Promise::reject(new TimeoutException('Socket timed out.')));
+            ->andReturn(Promise\reject(new TimeoutException('Socket timed out.')));
 
-        $promise = $this->executor->execute('example.com', 'A', $timeout, 0);
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, 0));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('Icicle\Dns\Exception\NoResponseException'));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testServerDoesNotRespondWithRetries()
@@ -319,22 +320,22 @@ class ExecutorTest extends TestCase
 
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise::resolve(strlen($data));
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')
             ->times(3)
-            ->andReturn(Promise::reject(new TimeoutException('Socket timed out.')));
+            ->andReturn(Promise\reject(new TimeoutException('Socket timed out.')));
 
-        $promise = $this->executor->execute('example.com', 'A', $timeout, $retries);
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, $retries));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('Icicle\Dns\Exception\NoResponseException'));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -359,19 +360,19 @@ class ExecutorTest extends TestCase
                 static $initial = true;
                 if ($initial) {
                     $initial = false;
-                    return Promise::reject(new TimeoutException('Socket timed out.'));
+                    return Promise\reject(new TimeoutException('Socket timed out.'));
                 }
-                return Promise::resolve($id . substr(base64_decode($response), self::ID_LENGTH));
+                return Promise\resolve($id . substr(base64_decode($response), self::ID_LENGTH));
             });
 
-        $promise = $this->executor->execute($domain, 'A', $timeout, $retries);
+        $coroutine = new Coroutine($this->executor->execute($domain, 'A', $timeout, $retries));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('LibDNS\Messages\Message'));
 
-        $promise->done($callback);
+        $coroutine->done($callback);
 
-        Loop::run();
+        Loop\run();
     }
 }
