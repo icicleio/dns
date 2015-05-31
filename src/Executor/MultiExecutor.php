@@ -36,29 +36,7 @@ class MultiExecutor implements ExecutorInterface
         if (0 > $retries) {
             $retries = 0;
         }
-        
-        return new Coroutine($this->run($name, $type, $timeout, $retries));
-    }
 
-    /**
-     * @coroutine
-     *
-     * @param   string $name Domain name.
-     * @param   string|int $type Record type (e.g., 'A', 'MX', 'AAAA', 'NS' or integer value of type)
-     * @param   float|int $timeout Seconds until a request times out.
-     * @param   int $retries Number of times to attempt the request.
-     *
-     * @return  \Generator
-     *
-     * @resolve \LibDNS\Messages\Message
-     *
-     * @reject  \Icicle\Dns\Exception\LogicException If no executors are defined.
-     * @reject  \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
-     *          not respond at all.
-     * @reject  \Icicle\Dns\Exception\MessageException If there is a problem with the response or no response.
-     */
-    protected function run($name, $type, $timeout, $retries)
-    {
         if ($this->executors->isEmpty()) {
             throw new LogicException('No executors defined.');
         }

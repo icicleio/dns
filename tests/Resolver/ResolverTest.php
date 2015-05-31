@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Tests\Dns\Resolver;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
@@ -44,7 +45,7 @@ class ResolverTest extends TestCase
             ->with(Mockery::mustBe($domain), Mockery::mustBe(ResourceQTypes::A), Mockery::any(), Mockery::type('integer'))
             ->andReturn($this->createMessage($answers, $authority));
 
-        $promise = $this->resolver->resolve($domain);
+        $coroutine = new Coroutine($this->resolver->resolve($domain));
 
         $result = [];
 
@@ -58,7 +59,7 @@ class ResolverTest extends TestCase
         $callback->method('__invoke')
             ->with($this->equalTo($result));
 
-        $promise->done($callback, $this->createCallback(0));
+        $coroutine->done($callback, $this->createCallback(0));
 
         Loop\run();
     }
@@ -73,7 +74,7 @@ class ResolverTest extends TestCase
         $this->executor->shouldReceive('execute')
             ->andReturn($this->createMessage());
 
-        $promise = $this->resolver->resolve($domain);
+        $coroutine = new Coroutine($this->resolver->resolve($domain));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -83,7 +84,7 @@ class ResolverTest extends TestCase
                 $this->assertSame(ResourceQTypes::A, $exception->getType());
             }));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
         Loop\run();
     }
@@ -93,13 +94,13 @@ class ResolverTest extends TestCase
         $this->executor->shouldReceive('execute')
             ->never();
 
-        $promise = $this->resolver->resolve('localhost');
+        $coroutine = new Coroutine($this->resolver->resolve('localhost'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->equalTo(['127.0.0.1']));
 
-        $promise->done($callback, $this->createCallback(0));
+        $coroutine->done($callback, $this->createCallback(0));
 
         Loop\run();
     }

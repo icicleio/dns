@@ -7,12 +7,14 @@ interface ExecutorInterface
     const DEFAULT_RETRIES = 5;
     
     /**
+     * @coroutine
+     *
      * @param   string $name Domain name.
      * @param   string|int $type Query type (e.g., 'A', 'MX', 'AAAA', 'NS')
      * @param   float|int $timeout Timeout for each individual request.
      * @param   int $retries Number of times to retry the request until failing.
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return  \Generator
      *
      * @resolve \LibDNS\Messages\Message Response message.
      *
