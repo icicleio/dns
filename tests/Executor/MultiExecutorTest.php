@@ -3,8 +3,8 @@ namespace Icicle\Tests\Dns\Executor;
 
 use Icicle\Dns\Exception\MessageException;
 use Icicle\Dns\Executor\MultiExecutor;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\Dns\TestCase;
 
 class MultiExecutorTest extends TestCase
@@ -37,7 +37,7 @@ class MultiExecutorTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function execute($type, $domain, $request, $response, array $answers = null, array $authority = null)
@@ -49,7 +49,7 @@ class MultiExecutorTest extends TestCase
         $executor->expects($this->once())
             ->method('execute')
             ->with($domain, $type)
-            ->will($this->returnValue(Promise::resolve($message)));
+            ->will($this->returnValue(Promise\resolve($message)));
 
         $this->executor->add($executor);
 
@@ -61,7 +61,7 @@ class MultiExecutorTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -94,7 +94,7 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise::reject(new MessageException())));
+            ->will($this->returnValue(Promise\reject(new MessageException())));
 
         $this->executor->add($executor);
 
@@ -102,7 +102,7 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise::resolve($this->createMessage())));
+            ->will($this->returnValue(Promise\resolve($this->createMessage())));
 
         $this->executor->add($executor);
 
@@ -114,7 +114,7 @@ class MultiExecutorTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testNextRequestUsesLastRespondingExecutor()
@@ -123,7 +123,7 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise::reject(new MessageException())));
+            ->will($this->returnValue(Promise\reject(new MessageException())));
 
         $this->executor->add($executor);
 
@@ -131,7 +131,7 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->exactly(2))
             ->method('execute')
-            ->will($this->returnValue(Promise::resolve($this->createMessage())));
+            ->will($this->returnValue(Promise\resolve($this->createMessage())));
 
         $this->executor->add($executor);
 
@@ -143,7 +143,7 @@ class MultiExecutorTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run(); // Should shift first executor to back of list.
+        Loop\run(); // Should shift first executor to back of list.
 
         $promise = $this->executor->execute('example.org', 'A');
 
@@ -153,7 +153,7 @@ class MultiExecutorTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run(); // Should call second executor first.
+        Loop\run(); // Should call second executor first.
     }
 
     public function testRetries()
@@ -166,7 +166,7 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->exactly($retries + 1))
             ->method('execute')
-            ->will($this->returnValue(Promise::reject($exception)));
+            ->will($this->returnValue(Promise\reject($exception)));
 
         $this->executor->add($executor);
 
@@ -174,7 +174,7 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->exactly($retries + 1))
             ->method('execute')
-            ->will($this->returnValue(Promise::reject($exception)));
+            ->will($this->returnValue(Promise\reject($exception)));
 
         $this->executor->add($executor);
 
@@ -186,7 +186,7 @@ class MultiExecutorTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -201,7 +201,7 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise::reject($exception)));
+            ->will($this->returnValue(Promise\reject($exception)));
 
         $this->executor->add($executor);
 
@@ -213,6 +213,6 @@ class MultiExecutorTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 }

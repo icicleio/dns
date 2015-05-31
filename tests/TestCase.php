@@ -6,8 +6,25 @@ use LibDNS\Messages\MessageTypes;
 use LibDNS\Records\ResourceBuilderFactory;
 use Symfony\Component\Yaml\Yaml;
 
-class TestCase extends \Icicle\Tests\TestCase
+abstract class TestCase extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * Creates a callback that must be called $count times or the test will fail.
+     *
+     * @param   int $count Number of times the callback should be called.
+     *
+     * @return  callable Object that is callable and expects to be called the given number of times.
+     */
+    public function createCallback($count)
+    {
+        $mock = $this->getMock('Icicle\Tests\Dns\Stub\CallbackStub');
+
+        $mock->expects($this->exactly($count))
+            ->method('__invoke');
+
+        return $mock;
+    }
+
     /**
      * @return  array Array of A record requests and responses.
      */

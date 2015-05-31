@@ -1,6 +1,6 @@
 {
     "name": "icicleio/dns",
-    "description": "Asynchronous DNS resolver for Icicle.",
+    "description": "Asynchronous DNS for Icicle.",
     "keywords": [
         "dns",
         "resolver",
@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "0.2 - 0.4",
+        "icicleio/icicle": "~0.5",
         "daverandom/libdns": "~1"
     },
     "require-dev": {
@@ -27,8 +27,8 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.1-dev",
-            "dev-development": "0.2-dev"
+            "dev-master": "0.2-dev",
+            "dev-development": "0.3-dev"
         }
     },
     "autoload": {
@@ -38,7 +38,6 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Icicle\\Tests\\": "vendor/icicleio/icicle/tests",
             "Icicle\\Tests\\Dns\\": "tests"
         }
     }

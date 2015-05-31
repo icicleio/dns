@@ -3,7 +3,7 @@ namespace Icicle\Tests\Dns\Resolver;
 
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Records\ResourceQTypes;
 use Mockery;
@@ -60,7 +60,7 @@ class ResolverTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -85,7 +85,7 @@ class ResolverTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testLocalhost()
@@ -101,6 +101,6 @@ class ResolverTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 }
