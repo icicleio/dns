@@ -106,9 +106,9 @@ class Executor implements ExecutorInterface
     private $connector;
     
     /**
-     * @param   string $address Name server IP address to resolve queries.
-     * @param   int $port
-     * @param   \Icicle\Socket\Client\ConnectorInterface|null $connector
+     * @param string $address Name server IP address to resolve queries.
+     * @param int $port
+     * @param \Icicle\Socket\Client\ConnectorInterface|null $connector
      */
     public function __construct($address, $port = self::DEFAULT_PORT, ClientConnectorInterface $connector = null)
     {
@@ -140,7 +140,7 @@ class Executor implements ExecutorInterface
     /**
      * IP address of the name server used by this executor.
      *
-     * @return  string
+     * @return string
      */
     public function getAddress()
     {
@@ -148,7 +148,7 @@ class Executor implements ExecutorInterface
     }
 
     /**
-     * @return  int
+     * @return int
      */
     public function getPort()
     {
@@ -158,19 +158,19 @@ class Executor implements ExecutorInterface
     /**
      * @coroutine
      *
-     * @param   string $name Domain name.
-     * @param   string|int $type Record type (e.g., 'A', 'MX', 'AAAA', 'NS' or integer value of type)
-     * @param   float|int $timeout Seconds until a request times out.
-     * @param   int $retries Number of times to attempt the request.
+     * @param string $name Domain name.
+     * @param string|int $type Record type (e.g., 'A', 'MX', 'AAAA', 'NS' or integer value of type)
+     * @param float|int $timeout Seconds until a request times out.
+     * @param int $retries Number of times to attempt the request.
      *
-     * @return  \Generator
+     * @return \Generator
      *
      * @resolve \LibDNS\Messages\Message
      *
-     * @reject  \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
-     *          not respond at all.
-     * @reject  \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
-     * @reject  \Icicle\Dns\Exception\MessageException If there is a problem with the response or no response.
+     * @reject \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
+     *     not respond at all.
+     * @reject \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
+     * @reject \Icicle\Dns\Exception\MessageException If there is a problem with the response or no response.
      */
     protected function run($name, $type, $timeout, $retries)
     {
@@ -220,10 +220,10 @@ class Executor implements ExecutorInterface
     }
 
     /**
-     * @param   string $name
-     * @param   string|int $type
+     * @param string $name
+     * @param string|int $type
      *
-     * @return  \LibDNS\Records\Question
+     * @return \LibDNS\Records\Question
      */
     protected function createQuestion($name, $type)
     {
@@ -245,9 +245,9 @@ class Executor implements ExecutorInterface
     }
 
     /**
-     * @param   \LibDNS\Records\Question
+     * @param \LibDNS\Records\Question
      *
-     * @return  \LibDNS\Messages\Message
+     * @return \LibDNS\Messages\Message
      */
     protected function createRequest(Question $question)
     {
@@ -263,7 +263,7 @@ class Executor implements ExecutorInterface
     /**
      * Creates message ID.
      *
-     * @return  int
+     * @return int
      */
     protected function createId()
     {
@@ -271,7 +271,7 @@ class Executor implements ExecutorInterface
     }
 
     /**
-     * @return  int[]
+     * @return int[]
      */
     protected static function getRecordTypes()
     {

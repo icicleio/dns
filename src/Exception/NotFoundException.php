@@ -14,8 +14,8 @@ class NotFoundException extends RuntimeException
     private $type;
 
     /**
-     * @param   string $name
-     * @param   int $type
+     * @param string $name
+     * @param int $type
      */
     public function __construct($name, $type)
     {
@@ -26,7 +26,7 @@ class NotFoundException extends RuntimeException
     }
 
     /**
-     * @return  string Domain name.
+     * @return string Domain name.
      */
     public function getName()
     {
@@ -34,7 +34,7 @@ class NotFoundException extends RuntimeException
     }
 
     /**
-     * @return  int
+     * @return int
      */
     public function getType()
     {

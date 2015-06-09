@@ -24,8 +24,8 @@ class Connector implements ConnectorInterface
     private $connector;
     
     /**
-     * @param   \Icicle\Dns\Resolver\ResolverInterface $resolver
-     * @param   \Icicle\Socket\Client\ConnectorInterface $connector
+     * @param \Icicle\Dns\Resolver\ResolverInterface $resolver
+     * @param \Icicle\Socket\Client\ConnectorInterface $connector
      */
     public function __construct(ResolverInterface $resolver, ClientConnectorInterface $connector = null)
     {
@@ -57,17 +57,17 @@ class Connector implements ConnectorInterface
     /**
      * @coroutine
      *
-     * @param   string $domain
-     * @param   int $port
-     * @param   float|int $timeout
-     * @param   int $retries
-     * @param   mixed[] $options
+     * @param string $domain
+     * @param int $port
+     * @param float|int $timeout
+     * @param int $retries
+     * @param mixed[] $options
      *
-     * @return  \Generator
+     * @return \Generator
      *
      * @resolve \Icicle\Socket\Client\ClientInterface
      *
-     * @reject  \Icicle\Socket\Exception\FailureException
+     * @reject \Icicle\Socket\Exception\FailureException
      */
     protected function run($domain, $port, $timeout, $retries, array $options)
     {

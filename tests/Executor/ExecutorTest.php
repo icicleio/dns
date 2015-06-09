@@ -47,7 +47,7 @@ class ExecutorTest extends TestCase
     }
 
     /**
-     * @return  \Icicle\Socket\Client\ClientInterface
+     * @return \Icicle\Socket\Client\ClientInterface
      */
     public function createClient()
     {
@@ -59,9 +59,9 @@ class ExecutorTest extends TestCase
     }
 
     /**
-     * @param   \Icicle\Socket\Client\ClientInterface $client
+     * @param \Icicle\Socket\Client\ClientInterface $client
      *
-     * @return  \Icicle\Socket\Client\ConnectorInterface
+     * @return \Icicle\Socket\Client\ConnectorInterface
      */
     public function createConnector(ClientInterface $client)
     {

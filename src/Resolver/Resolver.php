@@ -15,7 +15,7 @@ class Resolver implements ResolverInterface
     private $executor;
     
     /**
-     * @param   \Icicle\Dns\Executor\ExecutorInterface $executor
+     * @param \Icicle\Dns\Executor\ExecutorInterface $executor
      */
     public function __construct(ExecutorInterface $executor)
     {
@@ -40,11 +40,11 @@ class Resolver implements ResolverInterface
     /**
      * @coroutine
      *
-     * @param   string $domain
-     * @param   float|int $timeout
-     * @param   int $retries
+     * @param string $domain
+     * @param float|int $timeout
+     * @param int $retries
      *
-     * @return  \Generator
+     * @return \Generator
      */
     protected function run($domain, $timeout, $retries)
     {

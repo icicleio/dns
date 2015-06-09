@@ -15,7 +15,7 @@ class ResponseException extends MessageException
     }
 
     /**
-     * @return  \LibDNS\Messages\Message
+     * @return \LibDNS\Messages\Message
      */
     public function getResponse()
     {

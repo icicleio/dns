@@ -28,7 +28,7 @@ class ResolverTest extends TestCase
     }
 
     /**
-     * @return  \Icicle\Dns\Executor\ExecutorInterface
+     * @return \Icicle\Dns\Executor\ExecutorInterface
      */
     public function createExecutor()
     {
