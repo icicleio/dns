@@ -125,7 +125,7 @@ class Executor implements ExecutorInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {

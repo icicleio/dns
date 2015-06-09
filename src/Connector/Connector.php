@@ -34,7 +34,7 @@ class Connector implements ConnectorInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function connect(
         $domain,
