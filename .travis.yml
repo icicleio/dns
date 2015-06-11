@@ -10,8 +10,12 @@ matrix:
         - php: 7.0
     fast_finish: true
 
-install: composer install --no-interaction --prefer-source
+install:
+  - composer install --no-interaction --prefer-source
 
-script: vendor/bin/phpunit --coverage-text
+script:
+  - vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
 
-after_script: vendor/bin/coveralls -v --exclude-no-stmt
+after_script:
+  - composer require satooshi/php-coveralls dev-master
+  - vendor/bin/coveralls -v --exclude-no-stmt

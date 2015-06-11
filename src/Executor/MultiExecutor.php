@@ -20,7 +20,7 @@ class MultiExecutor implements ExecutorInterface
     }
     
     /**
-     * @param   \Icicle\Dns\Executor\ExecutorInterface
+     * @param \Icicle\Dns\Executor\ExecutorInterface
      */
     public function add(ExecutorInterface $executor)
     {
@@ -28,7 +28,7 @@ class MultiExecutor implements ExecutorInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {

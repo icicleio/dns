@@ -163,7 +163,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
-     * @return  array
+     * @return array
      */
     public function getIPv4Addresses()
     {
@@ -201,7 +201,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
-     * @return  array
+     * @return array
      */
     public function getIPv6Addresses()
     {

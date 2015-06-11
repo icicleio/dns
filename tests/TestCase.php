@@ -11,9 +11,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Creates a callback that must be called $count times or the test will fail.
      *
-     * @param   int $count Number of times the callback should be called.
+     * @param int $count Number of times the callback should be called.
      *
-     * @return  callable Object that is callable and expects to be called the given number of times.
+     * @return callable Object that is callable and expects to be called the given number of times.
      */
     public function createCallback($count)
     {
@@ -26,7 +26,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return  array Array of A record requests and responses.
+     * @return array Array of A record requests and responses.
      */
     public function getARecords()
     {
@@ -34,7 +34,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return  array Array of MX record requests and responses.
+     * @return array Array of MX record requests and responses.
      */
     public function getMxRecords()
     {
@@ -42,7 +42,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return  array Array of NS record requests and responses.
+     * @return array Array of NS record requests and responses.
      */
     public function getNsRecords()
     {
@@ -50,7 +50,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return  array Array of invalid record requests and responses.
+     * @return array Array of invalid record requests and responses.
      */
     public function getInvalid()
     {
@@ -58,10 +58,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param   array $answers
-     * @param   array $authority
+     * @param array $answers
+     * @param array $authority
      *
-     * @return  \LibDNS\Messages\Message
+     * @return \LibDNS\Messages\Message
      */
     public function createMessage(array $answers = null, array $authority = null)
     {

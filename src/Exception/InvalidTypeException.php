@@ -9,7 +9,7 @@ class InvalidTypeException extends InvalidArgumentException
     private $type;
 
     /**
-     * @param   int|string $type
+     * @param int|string $type
      */
     public function __construct($type)
     {
@@ -25,7 +25,7 @@ class InvalidTypeException extends InvalidArgumentException
     }
 
     /**
-     * @return  int|string
+     * @return int|string
      */
     public function getType()
     {

@@ -15,7 +15,7 @@ class Resolver implements ResolverInterface
     private $executor;
     
     /**
-     * @param   \Icicle\Dns\Executor\ExecutorInterface $executor
+     * @param \Icicle\Dns\Executor\ExecutorInterface $executor
      */
     public function __construct(ExecutorInterface $executor)
     {
@@ -23,7 +23,7 @@ class Resolver implements ResolverInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resolve(
         $domain,

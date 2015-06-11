@@ -106,9 +106,9 @@ class Executor implements ExecutorInterface
     private $connector;
     
     /**
-     * @param   string $address Name server IP address to resolve queries.
-     * @param   int $port
-     * @param   \Icicle\Socket\Client\ConnectorInterface|null $connector
+     * @param string $address Name server IP address to resolve queries.
+     * @param int $port
+     * @param \Icicle\Socket\Client\ConnectorInterface|null $connector
      */
     public function __construct($address, $port = self::DEFAULT_PORT, ClientConnectorInterface $connector = null)
     {
@@ -125,7 +125,7 @@ class Executor implements ExecutorInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
     {
@@ -201,7 +201,7 @@ class Executor implements ExecutorInterface
      * @param   string $name
      * @param   string|int $type
      *
-     * @return  \LibDNS\Records\Question
+     * @return \LibDNS\Records\Question
      */
     protected function createQuestion($name, $type)
     {
@@ -223,9 +223,9 @@ class Executor implements ExecutorInterface
     }
 
     /**
-     * @param   \LibDNS\Records\Question
+     * @param \LibDNS\Records\Question
      *
-     * @return  \LibDNS\Messages\Message
+     * @return \LibDNS\Messages\Message
      */
     protected function createRequest(Question $question)
     {
@@ -241,7 +241,7 @@ class Executor implements ExecutorInterface
     /**
      * Creates message ID.
      *
-     * @return  int
+     * @return int
      */
     protected function createId()
     {
@@ -249,7 +249,7 @@ class Executor implements ExecutorInterface
     }
 
     /**
-     * @return  int[]
+     * @return int[]
      */
     protected static function getRecordTypes()
     {

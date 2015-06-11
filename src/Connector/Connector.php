@@ -24,8 +24,8 @@ class Connector implements ConnectorInterface
     private $connector;
     
     /**
-     * @param   \Icicle\Dns\Resolver\ResolverInterface $resolver
-     * @param   \Icicle\Socket\Client\ConnectorInterface $connector
+     * @param \Icicle\Dns\Resolver\ResolverInterface $resolver
+     * @param \Icicle\Socket\Client\ConnectorInterface $connector
      */
     public function __construct(ResolverInterface $resolver, ClientConnectorInterface $connector = null)
     {
@@ -34,7 +34,7 @@ class Connector implements ConnectorInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function connect(
         $domain,
@@ -51,25 +51,25 @@ class Connector implements ConnectorInterface
         $default = ['name' => $domain];
         $options = null === $options ? $default : array_merge($default, $options);
 
-        return new Coroutine($this->doConnect($domain, $port, $timeout, $retries, $options));
+        return new Coroutine($this->run($domain, $port, $timeout, $retries, $options));
     }
 
     /**
      * @coroutine
      *
-     * @param   string $domain
-     * @param   int $port
-     * @param   float|int $timeout
-     * @param   int $retries
-     * @param   mixed[] $options
+     * @param string $domain
+     * @param int $port
+     * @param float|int $timeout
+     * @param int $retries
+     * @param mixed[] $options
      *
-     * @return  \Generator
+     * @return \Generator
      *
      * @resolve \Icicle\Socket\Client\ClientInterface
      *
-     * @reject  \Icicle\Socket\Exception\FailureException
+     * @reject \Icicle\Socket\Exception\FailureException
      */
-    private function doConnect($domain, $port, $timeout, $retries, array $options)
+    private function run($domain, $port, $timeout, $retries, array $options)
     {
         $ips = (yield $this->resolver->resolve($domain, $timeout, $retries));
 
@@ -82,6 +82,6 @@ class Connector implements ConnectorInterface
             }
         }
 
-        throw new FailureException("Could not connect to {$domain}:{$port}.");
+        throw new FailureException(sprintf('Could not connect to %s:%d.', $domain, $port));
     }
 }
