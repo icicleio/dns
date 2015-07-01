@@ -134,46 +134,6 @@ class Executor implements ExecutorInterface
             $retries = 0;
         }
 
-        return new Coroutine($this->run($name, $type, $timeout, $retries));
-    }
-
-    /**
-     * IP address of the name server used by this executor.
-     *
-     * @return string
-     */
-    public function getAddress()
-    {
-        return $this->address;
-    }
-
-    /**
-     * @return int
-     */
-    public function getPort()
-    {
-        return $this->port;
-    }
-
-    /**
-     * @coroutine
-     *
-     * @param string $name Domain name.
-     * @param string|int $type Record type (e.g., 'A', 'MX', 'AAAA', 'NS' or integer value of type)
-     * @param float|int $timeout Seconds until a request times out.
-     * @param int $retries Number of times to attempt the request.
-     *
-     * @return \Generator
-     *
-     * @resolve \LibDNS\Messages\Message
-     *
-     * @reject \Icicle\Dns\Exception\FailureException If the server responds with a non-zero response code or does
-     *     not respond at all.
-     * @reject \Icicle\Dns\Exception\NotFoundException If a record for the given query is not found.
-     * @reject \Icicle\Dns\Exception\MessageException If there is a problem with the response or no response.
-     */
-    protected function run($name, $type, $timeout, $retries)
-    {
         $question = $this->createQuestion($name, $type);
 
         $request = $this->createRequest($question);
@@ -220,8 +180,26 @@ class Executor implements ExecutorInterface
     }
 
     /**
-     * @param string $name
-     * @param string|int $type
+     * IP address of the name server used by this executor.
+     *
+     * @return  string
+     */
+    public function getAddress()
+    {
+        return $this->address;
+    }
+
+    /**
+     * @return  int
+     */
+    public function getPort()
+    {
+        return $this->port;
+    }
+
+    /**
+     * @param   string $name
+     * @param   string|int $type
      *
      * @return \LibDNS\Records\Question
      */

@@ -6,11 +6,13 @@ use Icicle\Dns\Executor\ExecutorInterface;
 interface ResolverInterface
 {
     /**
-     * @param string $domain Domain name to resolve.
-     * @param int|float $timeout Time until a request fails
-     * @param int $retries Number of times to retry the request until failing.
+     * @coroutine
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @param   string $domain Domain name to resolve.
+     * @param   int|float $timeout Time until a request fails
+     * @param   int $retries Number of times to retry the request until failing.
+     *
+     * @return  \Generator
      *
      * @resolve string[] List of IP address. Will always contain at least one IP, otherwise the promise is rejected.
      *

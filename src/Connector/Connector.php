@@ -49,7 +49,7 @@ class Connector implements ConnectorInterface
         }
 
         $default = ['name' => $domain];
-        $options = is_array($options) ? array_merge($default, $options) : $default;
+        $options = null === $options ? $default : array_merge($default, $options);
 
         return new Coroutine($this->run($domain, $port, $timeout, $retries, $options));
     }
@@ -69,7 +69,7 @@ class Connector implements ConnectorInterface
      *
      * @reject \Icicle\Socket\Exception\FailureException
      */
-    protected function run($domain, $port, $timeout, $retries, array $options)
+    private function run($domain, $port, $timeout, $retries, array $options)
     {
         $ips = (yield $this->resolver->resolve($domain, $timeout, $retries));
 
@@ -82,6 +82,6 @@ class Connector implements ConnectorInterface
             }
         }
 
-        throw new FailureException("Could not connect to {$domain}:{$port}.");
+        throw new FailureException(sprintf('Could not connect to %s:%d.', $domain, $port));
     }
 }

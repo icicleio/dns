@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Tests\Dns\Executor;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\MessageException;
 use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
@@ -29,13 +30,13 @@ class MultiExecutorTest extends TestCase
 
     public function testNoExecutors()
     {
-        $promise = $this->executor->execute('example.com', 'A');
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('Icicle\Dns\Exception\LogicException'));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
         Loop\run();
     }
@@ -53,13 +54,13 @@ class MultiExecutorTest extends TestCase
 
         $this->executor->add($executor);
 
-        $promise = $this->executor->execute($domain, $type);
+        $coroutine = new Coroutine($this->executor->execute($domain, $type));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->identicalTo($message));
 
-        $promise->done($callback, $this->createCallback(0));
+        $coroutine->done($callback, $this->createCallback(0));
 
         Loop\run();
     }
@@ -106,13 +107,13 @@ class MultiExecutorTest extends TestCase
 
         $this->executor->add($executor);
 
-        $promise = $this->executor->execute('example.com', 'A');
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('LibDNS\Messages\Message'));
 
-        $promise->done($callback, $this->createCallback(0));
+        $coroutine->done($callback, $this->createCallback(0));
 
         Loop\run();
     }
@@ -135,23 +136,23 @@ class MultiExecutorTest extends TestCase
 
         $this->executor->add($executor);
 
-        $promise = $this->executor->execute('example.com', 'A');
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('LibDNS\Messages\Message'));
 
-        $promise->done($callback, $this->createCallback(0));
+        $coroutine->done($callback, $this->createCallback(0));
 
         Loop\run(); // Should shift first executor to back of list.
 
-        $promise = $this->executor->execute('example.org', 'A');
+        $coroutine = new Coroutine($this->executor->execute('example.org', 'A'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf('LibDNS\Messages\Message'));
 
-        $promise->done($callback, $this->createCallback(0));
+        $coroutine->done($callback, $this->createCallback(0));
 
         Loop\run(); // Should call second executor first.
     }
@@ -178,13 +179,13 @@ class MultiExecutorTest extends TestCase
 
         $this->executor->add($executor);
 
-        $promise = $this->executor->execute('example.com', 'A', $timeout, $retries);
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, $retries));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->identicalTo($exception));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
         Loop\run();
     }
@@ -205,13 +206,13 @@ class MultiExecutorTest extends TestCase
 
         $this->executor->add($executor);
 
-        $promise = $this->executor->execute('example.com', 'A', $timeout, -1);
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, -1));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->identicalTo($exception));
 
-        $promise->done($this->createCallback(0), $callback);
+        $coroutine->done($this->createCallback(0), $callback);
 
         Loop\run();
     }
