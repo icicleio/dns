@@ -3,6 +3,7 @@ namespace Icicle\Tests\Dns\Resolver;
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\NotFoundException;
+use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
 use Icicle\Tests\Dns\TestCase;
@@ -33,7 +34,7 @@ class ResolverTest extends TestCase
      */
     public function createExecutor()
     {
-        return Mockery::mock('Icicle\Dns\Executor\ExecutorInterface');
+        return Mockery::mock(ExecutorInterface::class);
     }
 
     /**
@@ -78,7 +79,7 @@ class ResolverTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\NotFoundException'))
+            ->with($this->isInstanceOf(NotFoundException::class))
             ->will($this->returnCallback(function (NotFoundException $exception) use ($domain) {
                 $this->assertSame($domain, $exception->getName());
                 $this->assertSame(ResourceQTypes::A, $exception->getType());

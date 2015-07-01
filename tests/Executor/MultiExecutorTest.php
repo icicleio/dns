@@ -2,11 +2,14 @@
 namespace Icicle\Tests\Dns\Executor;
 
 use Icicle\Coroutine\Coroutine;
+use Icicle\Dns\Exception\LogicException;
 use Icicle\Dns\Exception\MessageException;
+use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Tests\Dns\TestCase;
+use LibDNS\Messages\Message;
 
 class MultiExecutorTest extends TestCase
 {
@@ -25,7 +28,7 @@ class MultiExecutorTest extends TestCase
      */
     public function createExecutor()
     {
-        return $this->getMock('Icicle\Dns\Executor\ExecutorInterface');
+        return $this->getMock(ExecutorInterface::class);
     }
 
     public function testNoExecutors()
@@ -34,7 +37,7 @@ class MultiExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\LogicException'));
+            ->with($this->isInstanceOf(LogicException::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 
@@ -111,7 +114,7 @@ class MultiExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('LibDNS\Messages\Message'));
+            ->with($this->isInstanceOf(Message::class));
 
         $coroutine->done($callback, $this->createCallback(0));
 
@@ -140,7 +143,7 @@ class MultiExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('LibDNS\Messages\Message'));
+            ->with($this->isInstanceOf(Message::class));
 
         $coroutine->done($callback, $this->createCallback(0));
 
@@ -150,7 +153,7 @@ class MultiExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('LibDNS\Messages\Message'));
+            ->with($this->isInstanceOf(Message::class));
 
         $coroutine->done($callback, $this->createCallback(0));
 

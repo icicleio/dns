@@ -3,9 +3,12 @@ namespace Icicle\Tests\Dns\Connector;
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Connector\Connector;
+use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\TimeoutException;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Client\ConnectorInterface;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Tests\Dns\TestCase;
 use Mockery;
@@ -38,12 +41,12 @@ class ConnectorTest extends TestCase
 
     protected function createResolver()
     {
-        return Mockery::mock('Icicle\Dns\Resolver\ResolverInterface');
+        return Mockery::mock(ResolverInterface::class);
     }
 
     protected function createClientConnector()
     {
-        return Mockery::mock('Icicle\Socket\Client\ConnectorInterface');
+        return Mockery::mock(ConnectorInterface::class);
     }
 
     public function testConnect()
@@ -61,13 +64,13 @@ class ConnectorTest extends TestCase
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
-            ->andReturn(Promise\resolve(Mockery::mock('Icicle\Socket\Client\ClientInterface')));
+            ->andReturn(Promise\resolve(Mockery::mock(ClientInterface::class)));
 
         $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -98,7 +101,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
+            ->with($this->isInstanceOf(FailureException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -126,14 +129,14 @@ class ConnectorTest extends TestCase
                     $initial = false;
                     return Promise\reject(new FailureException());
                 }
-                return Promise\resolve(Mockery::mock('Icicle\Socket\Client\ClientInterface'));
+                return Promise\resolve(Mockery::mock(ClientInterface::class));
             });
 
         $promise = new Coroutine($this->connector->connect($domain, $port));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -188,13 +191,13 @@ class ConnectorTest extends TestCase
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
-            ->andReturn(Promise\resolve($this->getMock('Icicle\Socket\Client\ClientInterface')));
+            ->andReturn(Promise\resolve($this->getMock(ClientInterface::class)));
 
         $promise = new Coroutine($this->connector->connect($ip, $port));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -226,13 +229,13 @@ class ConnectorTest extends TestCase
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
-            ->andReturn(Promise\resolve($this->getMock('Icicle\Socket\Client\ClientInterface')));
+            ->andReturn(Promise\resolve($this->getMock(ClientInterface::class)));
 
         $promise = new Coroutine($this->connector->connect($ip, $port));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 

@@ -2,13 +2,17 @@
 namespace Icicle\Tests\Dns\Executor;
 
 use Icicle\Coroutine\Coroutine;
+use Icicle\Dns\Exception\ExceptionInterface;
+use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\InvalidTypeException;
+use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Client\ConnectorInterface;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Messages\Message;
 use Mockery;
@@ -52,7 +56,7 @@ class ExecutorTest extends TestCase
      */
     public function createClient()
     {
-        $mock = Mockery::mock('Icicle\Socket\Client\ClientInterface');
+        $mock = Mockery::mock(ClientInterface::class);
 
         $mock->shouldReceive('close');
 
@@ -66,7 +70,7 @@ class ExecutorTest extends TestCase
      */
     public function createConnector(ClientInterface $client)
     {
-        $mock = Mockery::mock('Icicle\Socket\Client\ConnectorInterface');
+        $mock = Mockery::mock(ConnectorInterface::class);
 
         $mock->shouldReceive('connect')->andReturn($client);
 
@@ -91,7 +95,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\InvalidTypeException'))
+            ->with($this->isInstanceOf(InvalidTypeException::class))
             ->will($this->returnCallback(function (InvalidTypeException $exception) use ($type) {
                 $this->assertSame($type, $exception->getType());
             }));
@@ -109,7 +113,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\InvalidTypeException'))
+            ->with($this->isInstanceOf(InvalidTypeException::class))
             ->will($this->returnCallback(function (InvalidTypeException $exception) use ($type) {
                 $this->assertSame($type, $exception->getType());
             }));
@@ -136,7 +140,7 @@ class ExecutorTest extends TestCase
         $coroutine = new Coroutine($this->executor->execute($domain, $type));
 
         $callback = function (Message $message) use ($answers, $authority) {
-            $this->assertInstanceOf('LibDNS\Messages\Message', $message);
+            $this->assertInstanceOf(Message::class, $message);
 
             if (null !== $answers) {
                 /** @var \LibDNS\Records\Resource $record */
@@ -207,7 +211,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\ExceptionInterface'));
+            ->with($this->isInstanceOf(ExceptionInterface::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 
@@ -238,10 +242,10 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\ResponseIdException'))
+            ->with($this->isInstanceOf(ResponseIdException::class))
             ->will($this->returnCallback(function (ResponseIdException $exception) use (&$id) {
                 $response = $exception->getResponse();
-                $this->assertInstanceOf('LibDNS\Messages\Message', $response);
+                $this->assertInstanceOf(Message::class, $response);
             }));
 
         $coroutine->done($this->createCallback(0), $callback);
@@ -263,7 +267,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\FailureException'));
+            ->with($this->isInstanceOf(FailureException::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 
@@ -306,7 +310,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\NoResponseException'));
+            ->with($this->isInstanceOf(NoResponseException::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 
@@ -331,7 +335,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Dns\Exception\NoResponseException'));
+            ->with($this->isInstanceOf(NoResponseException::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 
@@ -369,7 +373,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('LibDNS\Messages\Message'));
+            ->with($this->isInstanceOf(Message::class));
 
         $coroutine->done($callback);
 
