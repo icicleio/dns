@@ -1,15 +1,14 @@
 <?php
 namespace Icicle\Dns\Executor;
 
-use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\InvalidTypeException;
 use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Exception\ResponseCodeException;
 use Icicle\Dns\Exception\ResponseIdException;
+use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\Connector as ClientConnector;
 use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
-use Icicle\Socket\Exception\TimeoutException;
 use LibDNS\Messages\MessageFactory;
 use LibDNS\Messages\MessageTypes;
 use LibDNS\Encoder\EncoderFactory;
@@ -169,7 +168,7 @@ class Executor implements ExecutorInterface
                     yield $response;
                     return;
                 } catch (TimeoutException $exception) {
-                    // Ignore TimeoutException and try the request again.
+                    // Ignore timeout and try the request again.
                 }
             } while (++$attempt <= $retries);
 
