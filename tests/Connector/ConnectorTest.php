@@ -1,11 +1,12 @@
 <?php
 namespace Icicle\Tests\Dns\Connector;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Connector\Connector;
 use Icicle\Loop;
 use Icicle\Promise;
+use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Exception\FailureException;
-use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Tests\Dns\TestCase;
 use Mockery;
 
@@ -62,7 +63,7 @@ class ConnectorTest extends TestCase
             ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
             ->andReturn(Promise\resolve(Mockery::mock('Icicle\Socket\Client\ClientInterface')));
 
-        $promise = $this->connector->connect($domain, $port, $options, $timeout, $retries);
+        $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -91,9 +92,9 @@ class ConnectorTest extends TestCase
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
-            ->andReturn(Promise\reject(new TimeoutException()));
+            ->andReturn(Promise\reject(new TimeoutException('Request timed out.')));
 
-        $promise = $this->connector->connect($domain, $port, $options, $timeout, $retries);
+        $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -128,7 +129,7 @@ class ConnectorTest extends TestCase
                 return Promise\resolve(Mockery::mock('Icicle\Socket\Client\ClientInterface'));
             });
 
-        $promise = $this->connector->connect($domain, $port);
+        $promise = new Coroutine($this->connector->connect($domain, $port));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -155,7 +156,7 @@ class ConnectorTest extends TestCase
         $this->clientConnector->shouldReceive('connect')
             ->with(identicalTo($ips[0]), identicalTo($port), identicalTo(['name' => $domain]));
 
-        $promise = $this->connector->connect($domain, $port);
+        $promise = new Coroutine($this->connector->connect($domain, $port));
 
         $promise->done($this->createCallback(1), $this->createCallback(0));
 
@@ -189,7 +190,7 @@ class ConnectorTest extends TestCase
             ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
             ->andReturn(Promise\resolve($this->getMock('Icicle\Socket\Client\ClientInterface')));
 
-        $promise = $this->connector->connect($ip, $port);
+        $promise = new Coroutine($this->connector->connect($ip, $port));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -227,7 +228,7 @@ class ConnectorTest extends TestCase
             ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
             ->andReturn(Promise\resolve($this->getMock('Icicle\Socket\Client\ClientInterface')));
 
-        $promise = $this->connector->connect($ip, $port);
+        $promise = new Coroutine($this->connector->connect($ip, $port));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

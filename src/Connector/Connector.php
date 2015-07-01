@@ -1,12 +1,11 @@
 <?php
 namespace Icicle\Dns\Connector;
 
-use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Resolver\ResolverInterface;
+use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\Connector as ClientConnector;
 use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
-use Icicle\Socket\Exception\ExceptionInterface as SocketException;
 use Icicle\Socket\Exception\FailureException;
 
 class Connector implements ConnectorInterface
@@ -45,40 +44,23 @@ class Connector implements ConnectorInterface
     ) {
         // Check if $domain is actually an IP address.
         if (preg_match(self::IP_REGEX, $domain)) {
-            return $this->connector->connect($domain, $port, $options);
+            yield $this->connector->connect($domain, $port, $options);
+            return;
         }
 
         $default = ['name' => $domain];
         $options = null === $options ? $default : array_merge($default, $options);
 
-        return new Coroutine($this->run($domain, $port, $timeout, $retries, $options));
-    }
-
-    /**
-     * @coroutine
-     *
-     * @param string $domain
-     * @param int $port
-     * @param float|int $timeout
-     * @param int $retries
-     * @param mixed[] $options
-     *
-     * @return \Generator
-     *
-     * @resolve \Icicle\Socket\Client\ClientInterface
-     *
-     * @reject \Icicle\Socket\Exception\FailureException
-     */
-    private function run($domain, $port, $timeout, $retries, array $options)
-    {
         $ips = (yield $this->resolver->resolve($domain, $timeout, $retries));
 
         foreach ($ips as $ip) {
             try {
                 yield $this->connector->connect($ip, $port, $options);
                 return;
-            } catch (SocketException $exception) {
-                // Ignore exception and try next IP address.
+            } catch (TimeoutException $exception) {
+                // Connection timed out, try next IP address.
+            } catch (FailureException $exception) {
+                // Connection failed, try next IP address.
             }
         }
 
