@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "^0.5",
+        "icicleio/socket": "^0.1 || ^1.0",
         "daverandom/libdns": "^1"
     },
     "require-dev": {
