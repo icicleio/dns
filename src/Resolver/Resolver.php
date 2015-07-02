@@ -3,7 +3,6 @@ namespace Icicle\Dns\Resolver;
 
 use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Promise;
 use LibDNS\Records\ResourceTypes;
 
 class Resolver implements ResolverInterface
