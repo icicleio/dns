@@ -2,8 +2,8 @@
 namespace Icicle\Tests\Dns\Executor;
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Exception\LogicException;
 use Icicle\Dns\Exception\MessageException;
+use Icicle\Dns\Exception\NoExecutorsError;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
@@ -37,7 +37,7 @@ class MultiExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(LogicException::class));
+            ->with($this->isInstanceOf(NoExecutorsError::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 

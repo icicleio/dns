@@ -2,9 +2,9 @@
 namespace Icicle\Tests\Dns\Executor;
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Exception\ExceptionInterface;
+use Icicle\Dns\Exception\Exception;
 use Icicle\Dns\Exception\FailureException;
-use Icicle\Dns\Exception\InvalidTypeException;
+use Icicle\Dns\Exception\InvalidTypeError;
 use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Dns\Executor\Executor;
@@ -95,8 +95,8 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(InvalidTypeException::class))
-            ->will($this->returnCallback(function (InvalidTypeException $exception) use ($type) {
+            ->with($this->isInstanceOf(InvalidTypeError::class))
+            ->will($this->returnCallback(function (InvalidTypeError $exception) use ($type) {
                 $this->assertSame($type, $exception->getType());
             }));
 
@@ -113,8 +113,8 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(InvalidTypeException::class))
-            ->will($this->returnCallback(function (InvalidTypeException $exception) use ($type) {
+            ->with($this->isInstanceOf(InvalidTypeError::class))
+            ->will($this->returnCallback(function (InvalidTypeError $exception) use ($type) {
                 $this->assertSame($type, $exception->getType());
             }));
 
@@ -211,7 +211,7 @@ class ExecutorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(ExceptionInterface::class));
+            ->with($this->isInstanceOf(Exception::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 

@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Dns\Exception;
 
-class MessageException extends RuntimeException {}
+class MessageException extends Exception {}

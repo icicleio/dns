@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Dns\Exception;
 
-class InvalidTypeException extends InvalidArgumentException
+class InvalidTypeError extends Error
 {
     /**
      * @var int|string
@@ -14,9 +14,9 @@ class InvalidTypeException extends InvalidArgumentException
     public function __construct($type)
     {
         if (is_int($type)) {
-            $message = "{$type} does not correspond to a valid record type (must be between 0 and 65535).";
+            $message = sprintf('%d does not correspond to a valid record type (must be between 0 and 65535).', $type);
         } else {
-            $message = "'{$type}' does not name a valid record type.";
+            $message = sprintf('"%s" does not name a valid record type.', $type);
         }
         
         parent::__construct($message);

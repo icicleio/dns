@@ -1,9 +1,8 @@
 <?php
 namespace Icicle\Dns\Executor;
 
-use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Exception\LogicException;
 use Icicle\Dns\Exception\MessageException;
+use Icicle\Dns\Exception\NoExecutorsError;
 
 class MultiExecutor implements ExecutorInterface
 {
@@ -38,7 +37,7 @@ class MultiExecutor implements ExecutorInterface
         }
 
         if ($this->executors->isEmpty()) {
-            throw new LogicException('No executors defined.');
+            throw new NoExecutorsError('No executors defined.');
         }
 
         $executors = clone $this->executors;

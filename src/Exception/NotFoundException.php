@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Dns\Exception;
 
-class NotFoundException extends RuntimeException
+class NotFoundException extends Exception
 {
     /**
      * @var string

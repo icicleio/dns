@@ -2,7 +2,7 @@
 namespace Icicle\Dns\Executor;
 
 use Icicle\Dns\Exception\FailureException;
-use Icicle\Dns\Exception\InvalidTypeException;
+use Icicle\Dns\Exception\InvalidTypeError;
 use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Exception\ResponseCodeException;
 use Icicle\Dns\Exception\ResponseIdException;
@@ -201,6 +201,8 @@ class Executor implements ExecutorInterface
      * @param   string|int $type
      *
      * @return \LibDNS\Records\Question
+     *
+     * @throws \Icicle\Dns\Exception\InvalidTypeError If the record type given is invalid.
      */
     protected function createQuestion($name, $type)
     {
@@ -208,11 +210,11 @@ class Executor implements ExecutorInterface
             $type = strtoupper($type);
             $types = static::getRecordTypes();
             if (!array_key_exists($type, $types)) {
-                throw new InvalidTypeException($type);
+                throw new InvalidTypeError($type);
             }
             $type = $types[$type];
         } elseif (0 > $type || 0xffff < $type) {
-            throw new InvalidTypeException($type);
+            throw new InvalidTypeError($type);
         }
 
         $question = $this->questionFactory->create($type);

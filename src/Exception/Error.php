@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Dns\Exception;
 
-interface ExceptionInterface {}
+class Error extends \Exception {}
