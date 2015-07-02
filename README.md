@@ -242,7 +242,7 @@ The connector component connects to a server by first resolving the hostname pro
 `Icicle\Dns\Connector\ConnectorInterface` defines a single method, `connect()` that should resolve a host name and connect to one of the resolved servers, resolving the returned promise with the connected client.
 
 ```php
-PromiseInterface $connectorInterface->connect(
+Generator $connectorInterface->connect(
     string $domain,
     int $port,
     array $options = null,
