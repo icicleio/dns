@@ -63,7 +63,7 @@ class MultiExecutorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($message));
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run();
     }
@@ -116,7 +116,7 @@ class MultiExecutorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(Message::class));
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run();
     }
@@ -145,7 +145,7 @@ class MultiExecutorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(Message::class));
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run(); // Should shift first executor to back of list.
 
@@ -155,7 +155,7 @@ class MultiExecutorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(Message::class));
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run(); // Should call second executor first.
     }

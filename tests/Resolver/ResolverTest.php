@@ -60,7 +60,7 @@ class ResolverTest extends TestCase
         $callback->method('__invoke')
             ->with($this->equalTo($result));
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run();
     }
@@ -81,7 +81,7 @@ class ResolverTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo([]));
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run();
     }
@@ -97,7 +97,7 @@ class ResolverTest extends TestCase
         $callback->method('__invoke')
             ->with($this->equalTo(['127.0.0.1']));
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run();
     }

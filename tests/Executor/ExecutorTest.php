@@ -161,7 +161,7 @@ class ExecutorTest extends TestCase
             }
         };
 
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run();
     }

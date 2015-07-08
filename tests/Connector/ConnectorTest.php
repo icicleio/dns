@@ -73,7 +73,7 @@ class ConnectorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(ClientInterface::class));
 
-        $promise->done($callback, $this->createCallback(0));
+        $promise->done($callback);
 
         Loop\run();
     }
@@ -115,7 +115,6 @@ class ConnectorTest extends TestCase
         $port = 443;
         $timeout = 0.1;
         $retries = 2;
-        $ips = ['127.0.0.1'];
         $options = ['timeout' => 0.1, 'name' => '*.example.com'];
 
         $this->resolver->shouldReceive('resolve')
@@ -139,7 +138,6 @@ class ConnectorTest extends TestCase
         $port = 443;
         $timeout = 0.1;
         $retries = 2;
-        $ips = ['127.0.0.1'];
         $options = ['timeout' => 0.1, 'name' => '*.example.com'];
 
         $this->resolver->shouldReceive('resolve')
@@ -187,7 +185,7 @@ class ConnectorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(ClientInterface::class));
 
-        $promise->done($callback, $this->createCallback(0));
+        $promise->done($callback);
 
         Loop\run();
     }
@@ -210,7 +208,7 @@ class ConnectorTest extends TestCase
 
         $promise = new Coroutine($this->connector->connect($domain, $port));
 
-        $promise->done($this->createCallback(1), $this->createCallback(0));
+        $promise->done($this->createCallback(1));
 
         Loop\run();
     }
@@ -248,7 +246,7 @@ class ConnectorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(ClientInterface::class));
 
-        $promise->done($callback, $this->createCallback(0));
+        $promise->done($callback);
 
         Loop\run();
     }
@@ -286,7 +284,7 @@ class ConnectorTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(ClientInterface::class));
 
-        $promise->done($callback, $this->createCallback(0));
+        $promise->done($callback);
 
         Loop\run();
     }
