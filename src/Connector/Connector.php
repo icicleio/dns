@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Dns\Connector;
 
+use Icicle\Dns\Exception\Exception as DnsException;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Promise\Exception\TimeoutException;
@@ -51,7 +52,15 @@ class Connector implements ConnectorInterface
         $default = ['name' => $domain];
         $options = null === $options ? $default : array_merge($default, $options);
 
-        $ips = (yield $this->resolver->resolve($domain, $timeout, $retries));
+        try {
+            $ips = (yield $this->resolver->resolve($domain, $timeout, $retries));
+        } catch (DnsException $exception) {
+            throw new FailureException(sprintf('Could not resolve host %s.', $domain), 0, $exception);
+        }
+
+        if (empty($ips)) {
+            throw new FailureException(sprintf('Host for %s not found.', $domain));
+        }
 
         foreach ($ips as $ip) {
             try {
@@ -64,6 +73,6 @@ class Connector implements ConnectorInterface
             }
         }
 
-        throw new FailureException(sprintf('Could not connect to %s:%d.', $domain, $port));
+        throw new FailureException(sprintf('Could not connect to %s:%d.', $domain, $port), 0, $exception);
     }
 }

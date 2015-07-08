@@ -48,10 +48,6 @@ class Resolver implements ResolverInterface
             }
         }
 
-        if (0 === count($result)) {
-            throw new NotFoundException($domain, ResourceTypes::A);
-        }
-
         yield $result;
     }
 }

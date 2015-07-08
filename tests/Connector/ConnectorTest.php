@@ -3,6 +3,7 @@ namespace Icicle\Tests\Dns\Connector;
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Connector\Connector;
+use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Loop;
 use Icicle\Promise;
@@ -96,6 +97,54 @@ class ConnectorTest extends TestCase
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
             ->andReturn(Promise\reject(new TimeoutException('Request timed out.')));
+
+        $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf(FailureException::class));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
+    public function testResolveEmpty()
+    {
+        $domain = 'example.com';
+        $port = 443;
+        $timeout = 0.1;
+        $retries = 2;
+        $ips = ['127.0.0.1'];
+        $options = ['timeout' => 0.1, 'name' => '*.example.com'];
+
+        $this->resolver->shouldReceive('resolve')
+            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
+            ->andReturn([]);
+
+        $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf(FailureException::class));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
+    public function testResolveFailure()
+    {
+        $domain = 'example.com';
+        $port = 443;
+        $timeout = 0.1;
+        $retries = 2;
+        $ips = ['127.0.0.1'];
+        $options = ['timeout' => 0.1, 'name' => '*.example.com'];
+
+        $this->resolver->shouldReceive('resolve')
+            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
+            ->andThrow(NoResponseException::class);
 
         $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
 

@@ -17,7 +17,6 @@ interface ResolverInterface
      * @resolve string[] List of IP address. Will always contain at least one IP, otherwise the promise is rejected.
      *
      * @reject \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
-     * @reject \Icicle\Dns\Exception\NotFoundException If the domain cannot be resolved.
      */
     public function resolve(
         $domain,

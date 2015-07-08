@@ -79,13 +79,9 @@ class ResolverTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(NotFoundException::class))
-            ->will($this->returnCallback(function (NotFoundException $exception) use ($domain) {
-                $this->assertSame($domain, $exception->getName());
-                $this->assertSame(ResourceQTypes::A, $exception->getType());
-            }));
+            ->with($this->identicalTo([]));
 
-        $coroutine->done($this->createCallback(0), $callback);
+        $coroutine->done($callback, $this->createCallback(0));
 
         Loop\run();
     }

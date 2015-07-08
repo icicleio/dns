@@ -18,8 +18,7 @@ interface ConnectorInterface extends \Icicle\Socket\Client\ConnectorInterface
      *
      * @resolve \Icicle\Socket\Client\ClientInterface
      *
-     * @reject \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
-     * @reject \Icicle\Dns\Exception\NotFoundException If the domain cannot be resolved.
+     * @reject \Icicle\Socket\Exception\FailureException If connecting fails.
      *
      * @see \Icicle\Socket\Client\Connector::connect() $options are the same as this method.
      */
