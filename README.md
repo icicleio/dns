@@ -28,7 +28,7 @@ You can also manually edit `composer.json` to add this library as a project requ
 // composer.json
 {
     "require": {
-        "icicleio/dns": "^0.2"
+        "icicleio/dns": "^0.4"
     }
 }
 ```
@@ -193,7 +193,7 @@ Queries using the above executor will automatically send requests to the second 
 
 ## Resolver
 
-A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the promise returned from `resolve()` with an array of IP addresses (even if only one IP address is found, the promise is still resolved with an array).
+A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the promise returned from `resolve()` with an array of IP addresses (even if only one or zero IP addresses is found, the promise is still resolved with an array).
 
 ```php
 Generator $resolverInterface->resolve(
