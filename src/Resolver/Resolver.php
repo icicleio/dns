@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Dns\Resolver;
 
-use Icicle\Dns\Exception\NotFoundException;
 use Icicle\Dns\Executor\ExecutorInterface;
 use LibDNS\Records\ResourceTypes;
 
