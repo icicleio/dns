@@ -1,5 +1,11 @@
 # Changelog
 
+### v0.4.0
+
+- Changes
+    - Changed `Icicle\Dns\Resolver\Resolver::resolve()` to resolve an empty array if no address is found instead of rejecting.
+    - Updated `Icicle\Dns\Connector\Connector::connect()` to catch exceptions created by this component, then throw an exception as specified on `Icicle\Socket\Client\ConnectorInterface::connect()` with the caught exception as previous.
+
 ### v0.3.0
 
 - Changes
