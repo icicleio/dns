@@ -29,8 +29,12 @@ class MultiExecutor implements ExecutorInterface
     /**
      * {@inheritdoc}
      */
-    public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
-    {
+    public function execute(
+        string $name,
+        $type,
+        float $timeout = self::DEFAULT_TIMEOUT,
+        int $retries = self::DEFAULT_RETRIES
+    ): \Generator {
         $retries = (int) $retries;
         if (0 > $retries) {
             $retries = 0;
@@ -49,8 +53,7 @@ class MultiExecutor implements ExecutorInterface
             $executor = $executors->shift();
 
             try {
-                yield $executor->execute($name, $type, $timeout, 0);
-                return;
+                return yield from $executor->execute($name, $type, $timeout, 0);
             } catch (MessageException $exception) {
                 // Push executor to the end of the list for this request.
                 $executors->push($executor);

@@ -26,7 +26,7 @@ interface ConnectorInterface extends \Icicle\Socket\Client\ConnectorInterface
         $domain,
         $port,
         array $options = null,
-        $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
-        $retries = ExecutorInterface::DEFAULT_RETRIES
-    );
+        float $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
+        int $retries = ExecutorInterface::DEFAULT_RETRIES
+    ): \Generator;
 }

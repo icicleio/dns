@@ -23,17 +23,16 @@ class Resolver implements ResolverInterface
      * {@inheritdoc}
      */
     public function resolve(
-        $domain,
-        $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
-        $retries = ExecutorInterface::DEFAULT_RETRIES
-    ) {
+        string $domain,
+        float $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
+        int $retries = ExecutorInterface::DEFAULT_RETRIES
+    ): \Generator {
         if (strtolower($domain) === 'localhost') {
-            yield ['127.0.0.1'];
-            return;
+            return ['127.0.0.1'];
         }
 
         /** @var \LibDNS\Messages\Message $response */
-        $response = (yield $this->executor->execute($domain, ResourceTypes::A, $timeout, $retries));
+        $response = yield from $this->executor->execute($domain, ResourceTypes::A, $timeout, $retries);
 
         $answers = $response->getAnswerRecords();
 
@@ -47,6 +46,6 @@ class Resolver implements ResolverInterface
             }
         }
 
-        yield $result;
+        return $result;
     }
 }

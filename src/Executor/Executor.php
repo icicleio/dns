@@ -9,6 +9,7 @@ use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\Connector as ClientConnector;
 use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
+use LibDNS\Messages\Message;
 use LibDNS\Messages\MessageFactory;
 use LibDNS\Messages\MessageTypes;
 use LibDNS\Encoder\EncoderFactory;
@@ -126,8 +127,12 @@ class Executor implements ExecutorInterface
     /**
      * {@inheritdoc}
      */
-    public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
-    {
+    public function execute(
+        string $name,
+        $type,
+        float $timeout = self::DEFAULT_TIMEOUT,
+        int $retries = self::DEFAULT_RETRIES
+    ): \Generator {
         $retries = (int) $retries;
         if (0 > $retries) {
             $retries = 0;
@@ -140,7 +145,7 @@ class Executor implements ExecutorInterface
         $data = $this->encoder->encode($request);
 
         /** @var \Icicle\Socket\Client\ClientInterface $client */
-        $client = (yield $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]));
+        $client = yield $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]);
 
         try {
             $attempt = 0;
@@ -149,7 +154,7 @@ class Executor implements ExecutorInterface
                 try {
                     yield $client->write($data);
 
-                    $response = (yield $client->read(self::MAX_PACKET_SIZE, null, $timeout));
+                    $response = yield $client->read(self::MAX_PACKET_SIZE, null, $timeout);
 
                     try {
                         $response = $this->decoder->decode($response);
@@ -165,8 +170,7 @@ class Executor implements ExecutorInterface
                         throw new ResponseIdException($response);
                     }
 
-                    yield $response;
-                    return;
+                    return $response;
                 } catch (TimeoutException $exception) {
                     // Ignore timeout and try the request again.
                 }
@@ -183,7 +187,7 @@ class Executor implements ExecutorInterface
      *
      * @return  string
      */
-    public function getAddress()
+    public function getAddress(): string
     {
         return $this->address;
     }
@@ -191,7 +195,7 @@ class Executor implements ExecutorInterface
     /**
      * @return  int
      */
-    public function getPort()
+    public function getPort(): int
     {
         return $this->port;
     }
@@ -204,7 +208,7 @@ class Executor implements ExecutorInterface
      *
      * @throws \Icicle\Dns\Exception\InvalidTypeError If the record type given is invalid.
      */
-    protected function createQuestion($name, $type)
+    protected function createQuestion(string $name, $type): Question
     {
         if (!is_int($type)) {
             $type = strtoupper($type);
@@ -228,7 +232,7 @@ class Executor implements ExecutorInterface
      *
      * @return \LibDNS\Messages\Message
      */
-    protected function createRequest(Question $question)
+    protected function createRequest(Question $question): Message
     {
         $request = $this->messageFactory->create(MessageTypes::QUERY);
         $request->getQuestionRecords()->add($question);
@@ -244,7 +248,7 @@ class Executor implements ExecutorInterface
      *
      * @return int
      */
-    protected function createId()
+    protected function createId(): int
     {
         return mt_rand(0, 0xffff);
     }
@@ -252,7 +256,7 @@ class Executor implements ExecutorInterface
     /**
      * @return int[]
      */
-    protected static function getRecordTypes()
+    protected static function getRecordTypes(): array
     {
         return self::$recordTypes;
     }

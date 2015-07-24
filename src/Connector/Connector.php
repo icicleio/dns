@@ -40,20 +40,19 @@ class Connector implements ConnectorInterface
         $domain,
         $port,
         array $options = null,
-        $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
-        $retries = ExecutorInterface::DEFAULT_RETRIES
-    ) {
+        float $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
+        int $retries = ExecutorInterface::DEFAULT_RETRIES
+    ): \Generator {
         // Check if $domain is actually an IP address.
         if (preg_match(self::IP_REGEX, $domain)) {
-            yield $this->connector->connect($domain, $port, $options);
-            return;
+            return yield from $this->connector->connect($domain, $port, $options);
         }
 
         $default = ['name' => $domain];
         $options = null === $options ? $default : array_merge($default, $options);
 
         try {
-            $ips = (yield $this->resolver->resolve($domain, $timeout, $retries));
+            $ips = yield from $this->resolver->resolve($domain, $timeout, $retries);
         } catch (DnsException $exception) {
             throw new FailureException(sprintf('Could not resolve host %s.', $domain), 0, $exception);
         }
@@ -64,8 +63,7 @@ class Connector implements ConnectorInterface
 
         foreach ($ips as $ip) {
             try {
-                yield $this->connector->connect($ip, $port, $options);
-                return;
+                return yield from $this->connector->connect($ip, $port, $options);
             } catch (TimeoutException $exception) {
                 // Connection timed out, try next IP address.
             } catch (FailureException $exception) {

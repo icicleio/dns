@@ -19,8 +19,8 @@ interface ResolverInterface
      * @reject \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
      */
     public function resolve(
-        $domain,
-        $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
-        $retries = ExecutorInterface::DEFAULT_RETRIES
-    );
+        string $domain,
+        float $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
+        int $retries = ExecutorInterface::DEFAULT_RETRIES
+    ): \Generator;
 }

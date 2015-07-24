@@ -22,5 +22,10 @@ interface ExecutorInterface
      * @reject \Icicle\Dns\Exception\MessageException If the server returns a non-zero response code or not response
      *     is received from the server.
      */
-    public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES);
+    public function execute(
+        string $name,
+        $type,
+        float $timeout = self::DEFAULT_TIMEOUT,
+        int $retries = self::DEFAULT_RETRIES
+    ): \Generator;
 }
