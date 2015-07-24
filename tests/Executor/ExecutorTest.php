@@ -72,7 +72,7 @@ class ExecutorTest extends TestCase
     {
         $mock = Mockery::mock(ConnectorInterface::class);
 
-        $mock->shouldReceive('connect')->andReturn($client);
+        $mock->shouldReceive('connect')->andReturn((function () use ($client) { return yield $client; })());
 
         return $mock;
     }
@@ -129,7 +129,7 @@ class ExecutorTest extends TestCase
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return strlen($data);
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')
@@ -199,7 +199,7 @@ class ExecutorTest extends TestCase
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return strlen($data);
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')
@@ -227,7 +227,7 @@ class ExecutorTest extends TestCase
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return strlen($data);
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')
@@ -355,7 +355,7 @@ class ExecutorTest extends TestCase
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return strlen($data);
+                return Promise\resolve(strlen($data));
             });
 
         $this->client->shouldReceive('read')

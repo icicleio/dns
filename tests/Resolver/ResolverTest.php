@@ -44,7 +44,9 @@ class ResolverTest extends TestCase
     {
         $this->executor->shouldReceive('execute')
             ->with(Mockery::mustBe($domain), Mockery::mustBe(ResourceQTypes::A), Mockery::any(), Mockery::type('integer'))
-            ->andReturn($this->createMessage($answers, $authority));
+            ->andReturn((function () use ($answers, $authority) {
+                return yield $this->createMessage($answers, $authority);
+            })());
 
         $coroutine = new Coroutine($this->resolver->resolve($domain));
 
@@ -73,7 +75,7 @@ class ResolverTest extends TestCase
         $domain = 'example.com';
 
         $this->executor->shouldReceive('execute')
-            ->andReturn($this->createMessage());
+            ->andReturn((function () { return yield $this->createMessage(); })());
 
         $coroutine = new Coroutine($this->resolver->resolve($domain));
 
@@ -95,7 +97,7 @@ class ResolverTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->equalTo(['127.0.0.1']));
+            ->with($this->identicalTo(['127.0.0.1']));
 
         $coroutine->done($callback);
 
