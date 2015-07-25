@@ -14,7 +14,7 @@ interface ResolverInterface
      *
      * @return  \Generator
      *
-     * @resolve string[] List of IP address. Will always contain at least one IP, otherwise the promise is rejected.
+     * @resolve string[] List of IP address. May return an empty array if the host cannot be found.
      *
      * @reject \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
      */
