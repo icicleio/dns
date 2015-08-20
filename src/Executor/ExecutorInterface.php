@@ -18,7 +18,7 @@ interface ExecutorInterface
      * @resolve \LibDNS\Messages\Message Response message.
      *
      * @throws \Icicle\Dns\Exception\FailureException If sending the request or parsing the response fails.
-     * @throws \Icicle\Dns\Exception\MessageException If the server returns a non-zero response code or not response
+     * @throws \Icicle\Dns\Exception\MessageException If the server returns a non-zero response code or no response
      *     is received from the server.
      */
     public function execute($name, $type, array $options = []);

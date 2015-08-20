@@ -9,8 +9,6 @@ interface ConnectorInterface extends \Icicle\Socket\Client\ConnectorInterface
      * @param string $domain Domain name.
      * @param int $port Port number.
      * @param mixed[] $options
-     * @param int|float $timeout Time until a request fails
-     * @param int $retries Number of times to retry the request until failing.
      *
      * @return \Generator
      *
