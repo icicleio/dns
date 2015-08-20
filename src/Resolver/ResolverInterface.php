@@ -3,6 +3,9 @@ namespace Icicle\Dns\Resolver;
 
 interface ResolverInterface
 {
+    const IPv4 = 1;  // A
+    const IPv6 = 28; // AAAA
+
     /**
      * @coroutine
      *

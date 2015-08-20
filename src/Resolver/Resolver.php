@@ -5,13 +5,9 @@ use Icicle\Dns\Exception\InvalidArgumentError;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Executor\MultiExecutor;
-use LibDNS\Records\ResourceTypes;
 
 class Resolver implements ResolverInterface
 {
-    const IPv4 = ResourceTypes::A;
-    const IPv6 = ResourceTypes::AAAA;
-
     /**
      * @var \Icicle\Dns\Executor\ExecutorInterface
      */
@@ -34,10 +30,8 @@ class Resolver implements ResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve(
-        $domain,
-        array $options = []
-    ) {
+    public function resolve($domain, array $options = [])
+    {
         $mode = isset($options['mode']) ? $options['mode'] : self::IPv4;
 
         if (!($mode === self::IPv4 || $mode === self::IPv6)) {
@@ -45,7 +39,7 @@ class Resolver implements ResolverInterface
         }
 
         if (strtolower($domain) === 'localhost') {
-            yield $mode === self::IPv4 ? ['127.0.0.1'] : ['[::1]'];
+            yield $mode === self::IPv4 ? ['127.0.0.1'] : ['::1'];
             return;
         }
 

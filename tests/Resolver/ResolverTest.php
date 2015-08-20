@@ -2,12 +2,12 @@
 namespace Icicle\Tests\Dns\Resolver;
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Exception\NotFoundException;
+use Icicle\Dns\Exception\InvalidArgumentError;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Resolver\Resolver;
+use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Loop;
 use Icicle\Tests\Dns\TestCase;
-use LibDNS\Records\ResourceQTypes;
 use Mockery;
 
 class ResolverTest extends TestCase
@@ -43,7 +43,7 @@ class ResolverTest extends TestCase
     public function testResolve($domain, $request, $response, array $answers = null, $authority = null)
     {
         $this->executor->shouldReceive('execute')
-            ->with(Mockery::mustBe($domain), Mockery::mustBe(ResourceQTypes::A), Mockery::type('array'))
+            ->with(Mockery::mustBe($domain), Mockery::mustBe(1), Mockery::type('array'))
             ->andReturn($this->createMessage($answers, $authority));
 
         $coroutine = new Coroutine($this->resolver->resolve($domain));
@@ -86,6 +86,22 @@ class ResolverTest extends TestCase
         Loop\run();
     }
 
+    public function testInvalidMode()
+    {
+        $this->executor->shouldReceive('execute')
+            ->never();
+
+        $coroutine = new Coroutine($this->resolver->resolve('localhost', ['mode' => 0]));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf(InvalidArgumentError::class));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
     public function testLocalhost()
     {
         $this->executor->shouldReceive('execute')
@@ -96,6 +112,14 @@ class ResolverTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->equalTo(['127.0.0.1']));
+
+        $coroutine->done($callback);
+
+        $coroutine = new Coroutine($this->resolver->resolve('localhost', ['mode' => ResolverInterface::IPv6]));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->equalTo(['::1']));
 
         $coroutine->done($callback);
 
