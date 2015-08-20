@@ -172,7 +172,7 @@ class MultiExecutorTest extends TestCase
             throw $exception; yield;
         };
 
-        $executor->expects($this->exactly($retries + 1))
+        $executor->expects($this->once())
             ->method('execute')
             ->will($this->returnCallback($generator));
 
@@ -180,7 +180,7 @@ class MultiExecutorTest extends TestCase
 
         $executor = $this->createExecutor();
 
-        $executor->expects($this->exactly($retries + 1))
+        $executor->expects($this->once())
             ->method('execute')
             ->will($this->returnCallback($generator));
 
