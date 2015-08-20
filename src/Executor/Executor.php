@@ -105,8 +105,8 @@ class Executor implements ExecutorInterface
     private $connector;
     
     /**
-     * @param string|int $address Name server IP address to resolve queries.
-     * @param int|null $port
+     * @param string $address Name server IP address to resolve queries.
+     * @param int $port
      * @param \Icicle\Socket\Client\ConnectorInterface|null $connector
      */
     public function __construct($address, $port = self::DEFAULT_PORT, ClientConnectorInterface $connector = null)
