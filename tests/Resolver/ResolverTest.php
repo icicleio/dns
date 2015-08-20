@@ -43,7 +43,7 @@ class ResolverTest extends TestCase
     public function testResolve($domain, $request, $response, array $answers = null, $authority = null)
     {
         $this->executor->shouldReceive('execute')
-            ->with(Mockery::mustBe($domain), Mockery::mustBe(ResourceQTypes::A), Mockery::any(), Mockery::type('integer'))
+            ->with(Mockery::mustBe($domain), Mockery::mustBe(ResourceQTypes::A), Mockery::type('array'))
             ->andReturn($this->createMessage($answers, $authority));
 
         $coroutine = new Coroutine($this->resolver->resolve($domain));

@@ -126,9 +126,11 @@ class Executor implements ExecutorInterface
     /**
      * {@inheritdoc}
      */
-    public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
+    public function execute($name, $type, array $options = [])
     {
-        $retries = (int) $retries;
+        $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_TIMEOUT;
+        $retries = isset($options['retries']) ? (int) $options['retries'] : self::DEFAULT_RETRIES;
+
         if (0 > $retries) {
             $retries = 0;
         }

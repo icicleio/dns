@@ -29,16 +29,18 @@ class MultiExecutor implements ExecutorInterface
     /**
      * {@inheritdoc}
      */
-    public function execute($name, $type, $timeout = self::DEFAULT_TIMEOUT, $retries = self::DEFAULT_RETRIES)
+    public function execute($name, $type, array $options = [])
     {
-        $retries = (int) $retries;
+        if ($this->executors->isEmpty()) {
+            throw new NoExecutorsError('No executors defined.');
+        }
+
+        $retries = isset($options['retries']) ? (int) $options['retries'] : self::DEFAULT_RETRIES;
         if (0 > $retries) {
             $retries = 0;
         }
 
-        if ($this->executors->isEmpty()) {
-            throw new NoExecutorsError('No executors defined.');
-        }
+        $options = array_merge($options, ['retries' => 0]);
 
         $executors = clone $this->executors;
         $retries = ($retries + 1) * count($executors) - 1;
@@ -49,7 +51,7 @@ class MultiExecutor implements ExecutorInterface
             $executor = $executors->shift();
 
             try {
-                yield $executor->execute($name, $type, $timeout, 0);
+                yield $executor->execute($name, $type, $options);
                 return;
             } catch (MessageException $exception) {
                 // Push executor to the end of the list for this request.

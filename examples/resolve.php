@@ -4,7 +4,6 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine;
-use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
 
@@ -15,19 +14,19 @@ if (2 > $argc) {
 $domain = $argv[1];
 
 $coroutine = Coroutine\create(function ($query, $timeout = 1) {
-    echo "Query: {$query}:\n";
+    printf("Query: %s\n", $query);
     
-    $resolver = new Resolver(new Executor('8.8.8.8'));
+    $resolver = new Resolver();
     
-    $ips = (yield $resolver->resolve($query, $timeout));
+    $ips = (yield $resolver->resolve($query, ['timeout' => $timeout]));
     
     foreach ($ips as $ip) {
-        echo "IP: {$ip}\n";
+        printf("IP: %s\n", $ip);
     }
 }, $domain);
 
 $coroutine->capture(function (Exception $e) {
-    echo "Exception: {$e->getMessage()}\n";
+    printf("Exception: %s\n", $e->getMessage());
 });
 
 Loop\run();

@@ -1,8 +1,6 @@
 <?php
 namespace Icicle\Dns\Connector;
 
-use Icicle\Dns\Executor\ExecutorInterface;
-
 interface ConnectorInterface extends \Icicle\Socket\Client\ConnectorInterface
 {
     /**
@@ -16,17 +14,11 @@ interface ConnectorInterface extends \Icicle\Socket\Client\ConnectorInterface
      *
      * @return \Generator
      *
-     * @resolve \Icicle\Socket\Client\ClientInterface
+     * @resolve resource
      *
-     * @reject \Icicle\Socket\Exception\FailureException If connecting fails.
+     * @throws \Icicle\Socket\Exception\FailureException If connecting fails.
      *
      * @see \Icicle\Socket\Client\Connector::connect() $options are the same as this method.
      */
-    public function connect(
-        $domain,
-        $port,
-        array $options = null,
-        $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
-        $retries = ExecutorInterface::DEFAULT_RETRIES
-    );
+    public function connect($domain, $port, array $options = []);
 }

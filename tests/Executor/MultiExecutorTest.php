@@ -168,9 +168,13 @@ class MultiExecutorTest extends TestCase
 
         $executor = $this->createExecutor();
 
+        $generator = function () use ($exception) {
+            throw $exception; yield;
+        };
+
         $executor->expects($this->exactly($retries + 1))
             ->method('execute')
-            ->will($this->returnValue(Promise\reject($exception)));
+            ->will($this->returnCallback($generator));
 
         $this->executor->add($executor);
 
@@ -178,11 +182,15 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->exactly($retries + 1))
             ->method('execute')
-            ->will($this->returnValue(Promise\reject($exception)));
+            ->will($this->returnCallback($generator));
 
         $this->executor->add($executor);
 
-        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, $retries));
+        $coroutine = new Coroutine($this->executor->execute(
+            'example.com',
+            'A',
+            ['timeout' => $timeout, 'retries' => $retries]
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -209,7 +217,11 @@ class MultiExecutorTest extends TestCase
 
         $this->executor->add($executor);
 
-        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, -1));
+        $coroutine = new Coroutine($this->executor->execute(
+            'example.com',
+            'A',
+            ['timeout' => $timeout, 'retries' => -1]
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
