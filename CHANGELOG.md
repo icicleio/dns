@@ -1,5 +1,10 @@
 # Changelog
 
+### v0.5.0
+
+- Changes
+    - Switched to using an array of options on each interface instead of separate arguments. Will add flexibility for differing implementations to have more options.
+
 ### v0.4.0
 
 - Changes

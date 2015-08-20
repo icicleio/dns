@@ -38,11 +38,11 @@ You can also manually edit `composer.json` to add this library as a project requ
 The example below uses a resolver to asynchronously find the IP address for the domain `icicle.io`.
 
 ```php
-use Icicle\Dns\Executor\Executor;
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
 
-$resolver = new Resolver(new Executor('8.8.8.8'));
+$resolver = new Resolver();
 
 $generator = function ($domain) use ($resolver) {
     try {
@@ -57,6 +57,7 @@ $generator = function ($domain) use ($resolver) {
 };
 
 $coroutine = new Coroutine($generator('icicle.io'));
+$coroutine->done();
 
 Loop\run();
 ```
@@ -70,18 +71,16 @@ Loop\run();
 - [Resolver](#resolver) - Resolves the IP address for a domain name.
 - [Connector](#connector) - Connects to a host and port.
 
-All references to `PromiseInterface` in the documentation below are to `Icicle\Promise\PromiseInterface`, part of the promises component of [Icicle](https://github.com/icicleio/Icicle). For more information on promises, see the [Promise API documentation](https://github.com/icicleio/Icicle/wiki/Promises) for more information.
+Methods returning a `Generator` can be used to create a [Coroutine](https://github.com/icicleio/icicle/wiki/Coroutines) (e.g., `new Coroutine($executor->execute(...))`) or yielded within another Coroutine (use `yield from` in PHP 7 for better performance).
 
-Methods returning a `Generator` can be used to create a [Coroutine](https://github.com/icicleio/Icicle/wiki/Coroutines) (e.g., `new Coroutine($executor->execute(...))`) or yielded within another Coroutine (use `yield from` in PHP 7 for better performance).
-
-This library uses [LibDNS](//github.com/DaveRandom/LibDNS) to create and parse DNS messages. Unfortunately the documentation for this library is currently limited to DocComments in the source code. If using only the resolver and connector components of this library, there is no need to worry about how this library works. The executor component returns promises that are resolved with `LibDNS\Messages\Message` instances, representing the response from the DNS server. Using these objects is simple and will be described in the executor section below.
+This library uses [LibDNS](//github.com/DaveRandom/LibDNS) to create and parse DNS messages. Unfortunately the documentation for this library is currently limited to DocComments in the source code. If using only the resolver and connector components of this library, there is no need to worry about how this library works. The executor component returns coroutines that are resolved with `LibDNS\Messages\Message` instances, representing the response from the DNS server. Using these objects is simple and will be described in the executor section below.
 
 #### Function prototypes
 
 Prototypes for object instance methods are described below using the following syntax:
 
 ```php
-ReturnType $classOrInterfaceName->methodName(ArgumentType $arg1, ArgumentType $arg2)
+ClassOrInterfaceName::methodName(ArgumentType $arg): ReturnType
 ```
 
 ## Executors
@@ -91,15 +90,25 @@ Executors are the foundation of the DNS component, performing any DNS query and 
 Each executor implements `Icicle\Dns\Executor\ExecutorInterface` that defines a single method, `execute()`.
 
 ```php
-Generator $executorInterface->execute(
+$executorInterface->execute(
     string $domain,
     string|int $type,
-    float|int $timeout = 2,
-    int $retries = 5
-)
+    array $options = []
+): Generator
 ```
 
-An executor will retry a query a number of times if it doesn't receive a response within `$timeout` seconds. The number of times a query will be retried before failing is defined by `$retries`, with `$timeout` seconds elapsing between each query attempt.
+Option | Type | Description
+:-- | :-- | :--
+`timeout` | `float` | Timeout until query fails. Default is 2 seconds.
+`retries` | `int` | Number of times to attempt the query before failing. Default is 5 times.
+
+An executor will retry a query a number of times if it doesn't receive a response within `timeout` seconds. The number of times a query will be retried before failing is defined by `retries`, with `timeout` seconds elapsing between each query attempt.
+
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `LibDNS\Message\Message` | Query response. Usage described below.
+Rejected | `Icicle\Dns\Exception\FailureException` | If sending the request or parsing the response fails.
+Rejected | `\Icicle\Dns\Exception\MessageException` | If the server returns a non-zero response code or no response is received.
 
 ### Creating an Executor
 
@@ -142,7 +151,7 @@ $executor = new Executor('8.8.8.8');
 
 $coroutine = new Coroutine($executor->execute('google.com', 'NS'));
 
-$coroutine->then(
+$coroutine->done(
     function (Message $message) {
         foreach ($message->getAnswerRecords() as $resource) {
             echo "TTL: {$resource->getTTL()} Value: {$resource->getData()}\n";
@@ -175,7 +184,7 @@ $executor->add(new Executor('8.8.4.4'));
 // Executor will send query to 8.8.4.4 if 8.8.8.8 does not respond.
 $coroutine = new Coroutine($executor->execute('google.com', 'MX'));
 
-$coroutine->then(
+$coroutine->done(
     function (Message $message) {
         foreach ($message->getAnswerRecords() as $resource) {
             echo "TTL: {$resource->getTTL()} Value: {$resource->getData()}\n";
@@ -193,19 +202,30 @@ Queries using the above executor will automatically send requests to the second 
 
 ## Resolver
 
-A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the promise returned from `resolve()` with an array of IP addresses (even if only one or zero IP addresses is found, the promise is still resolved with an array).
+A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the coroutine returned from `resolve()` with an array of IP addresses (even if only one or zero IP addresses is found, the coroutine is still resolved with an array).
 
 ```php
-Generator $resolverInterface->resolve(
+$resolverInterface->resolve(
     string $domain,
-    float|int $timeout = 2,
-    int $retries = 5
-)
+    array $options = []
+): Generator
 ```
 
-Like executors, a resolver will retry a query `$retries` times if the name server does not respond within `$timeout` seconds.
+Option | Type | Description
+:-- | :-- | :--
+`mode` | `int` | Resolution mode: IPv4 or IPv6. Use the constants `ResolverInterface::IPv4` or ``ResolverInterface::IPv6`.
+`timeout` | `float` | Timeout until query fails. Default is 2 seconds.
+`retries` | `int` | Number of times to attempt the query before failing. Default is 5 times.
 
-The `Icicle\Resolver\Resolver` class is constructed by passing an `Icicle\Executor\ExecutorInterface` instance that is used to execute queries to resolve domains.
+Like executors, a resolver will retry a query `retries` times if the name server does not respond within `timeout` seconds.
+
+The `Icicle\Resolver\Resolver` class is constructed by passing an `Icicle\Executor\ExecutorInterface` instance that is used to execute queries to resolve domains. If no executor is given, one will be created by default, using `8.8.8.8` and `8.8.4.4` as DNS servers for the executor.
+
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `array` | Array of resolved IP addresses. May be empty.
+Rejected | `Icicle\Dns\Exception\FailureException` | If sending the request or parsing the response fails.
+Rejected | `\Icicle\Dns\Exception\MessageException` | If the server returns a non-zero response code or no response is received.
 
 ##### Example
 
@@ -215,11 +235,11 @@ use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
 
-$resolver = new Resolver(new Executor('8.8.8.8'));
+$resolver = new Resolver();
 
 $coroutine = new Coroutine($resolver->resolve('google.com'));
 
-$coroutine->then(
+$coroutine->done(
     function (array $ips) {
         foreach ($ips as $ip) {
             echo "IP: {$ip}\n";
@@ -237,19 +257,30 @@ Loop\run();
 
 The connector component connects to a server by first resolving the hostname provided, then making the connection and resolving the returned promise with an instance of `Icicle\Socket\Client\ClientInterface`. `Icicle\Dns\Connector\Connector` implements `Icicle\Socket\Client\ConnectorInterface` and `Icicle\Dns\Connector\ConnectorInterface`, allowing it to be used anywhere a standard connector (`Icicle\Socket\Client\ConnectorInterface`) is required, or allowing components to require a resolving connector (`Icicle\Dns\Connector\ConnectorInterface`).
 
-`Icicle\Dns\Connector\ConnectorInterface` defines a single method, `connect()` that should resolve a host name and connect to one of the resolved servers, resolving the returned promise with the connected client.
+`Icicle\Dns\Connector\ConnectorInterface` defines a single method, `connect()` that should resolve a host name and connect to one of the resolved servers, resolving the coroutine with the connected client.
 
 ```php
-Generator $connectorInterface->connect(
+$connectorInterface->connect(
     string $domain,
     int $port,
-    array $options = null,
-    float|int $timeout = 2,
-    int $retries = 5
-)
+    array $options = [],
+): Generator
 ```
 
-`Icicle\Dns\Connector\Connector` will attempt to connect to one of the IP addresses found for a given host name. If the server at that IP is unresponsive, the connector will attempt to establish a connection to the next IP in the list until a server accepts the connection. Only if the connector is unable to connect to all of the IPs will it reject the promise returned from `connect()`. The constructor also optionally accepts an instance of `Icicle\Socket\Client\ConnectorInterface` if custom behavior is desired when connecting to the resolved host.
+`Icicle\Dns\Connector\Connector` will attempt to connect to one of the IP addresses found for a given host name. If the server at that IP is unresponsive, the connector will attempt to establish a connection to the next IP in the list until a server accepts the connection. Only if the connector is unable to connect to all of the IPs will it reject the coroutine returned from `connect()`. The constructor also optionally accepts an instance of `Icicle\Socket\Client\ConnectorInterface` if custom behavior is desired when connecting to the resolved host.
+
+Option | Type | Description
+:-- | :-- | :--
+`mode` | `int` | Resolution mode: IPv4 or IPv6. Use the constants `ResolverInterface::IPv4` or ``ResolverInterface::IPv6`.
+`timeout` | `float` | Timeout until query fails. Default is 2 seconds.
+`retries` | `int` | Number of times to attempt the query before failing. Default is 5 times.
+
+Additionally, all the [other options available](https://github.com/icicleio/socket#connect) to `Icicle\Socket\Client\Connector::connect()` are also available.
+
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `Icicle\Socket\Client\ClientInterface` | Connected client.
+Rejected | `Icicle\Socket\Exception\FailureException` | If resolving the IP or connecting fails.
 
 ##### Example
 
@@ -260,11 +291,11 @@ use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
 use Icicle\Socket\Client\ClientInterface;
 
-$connector = new Connector(new Resolver(new Executor('8.8.8.8')));
+$connector = new Connector();
 
-$promise = $connector->connect('google.com', 80);
+$coroutine = new Coroutine($connector->connect('google.com', 80));
 
-$promise->then(
+$coroutine->done(
     function (ClientInterface $client) {
         echo "IP: {$client->getRemoteAddress()}\n";
         echo "Port: {$client->getRemotePort()}\n";
