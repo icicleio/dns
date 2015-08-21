@@ -71,7 +71,7 @@ class ExecutorTest extends TestCase
     {
         $mock = Mockery::mock(ConnectorInterface::class);
 
-        $mock->shouldReceive('connect')->andReturn((function () use ($client) { return yield $client; })());
+        $mock->shouldReceive('connect')->andReturnUsing(function () use ($client) { return yield $client; });
 
         return $mock;
     }
@@ -129,7 +129,7 @@ class ExecutorTest extends TestCase
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
@@ -137,7 +137,7 @@ class ExecutorTest extends TestCase
         $this->client->shouldReceive('read')
             ->andReturnUsing(function () use (&$id, $response) {
                 $generator = function ($id, $response) {
-                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                    return yield $id . substr(base64_decode($response), self::ID_LENGTH);
                 };
                 return $generator($id, $response);
             });
@@ -205,7 +205,7 @@ class ExecutorTest extends TestCase
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
@@ -213,7 +213,7 @@ class ExecutorTest extends TestCase
         $this->client->shouldReceive('read')
             ->andReturnUsing(function () use (&$id, $response) {
                 $generator = function ($id, $response) {
-                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                    return yield $id . substr(base64_decode($response), self::ID_LENGTH);
                 };
                 return $generator($id, $response);
             });
@@ -239,7 +239,7 @@ class ExecutorTest extends TestCase
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
@@ -250,7 +250,7 @@ class ExecutorTest extends TestCase
                 $id += 1;
                 $id = pack('n', $id);
                 $generator = function ($id, $response) {
-                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                    return yield $id . substr(base64_decode($response), self::ID_LENGTH);
                 };
                 return $generator($id, $response);
             });
@@ -275,13 +275,13 @@ class ExecutorTest extends TestCase
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
 
         $generator = function () {
-            yield '';
+            return yield '';
         };
 
         $this->client->shouldReceive('read')
@@ -306,13 +306,13 @@ class ExecutorTest extends TestCase
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
 
         $generator = function () {
-            yield '';
+            return yield '';
         };
 
         $this->client->shouldReceive('read')
@@ -332,7 +332,7 @@ class ExecutorTest extends TestCase
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
@@ -367,7 +367,7 @@ class ExecutorTest extends TestCase
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
@@ -405,7 +405,7 @@ class ExecutorTest extends TestCase
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
                 $generator = function ($data) {
-                    yield strlen($data);
+                    return yield strlen($data);
                 };
                 return $generator($data);
             });
@@ -419,7 +419,7 @@ class ExecutorTest extends TestCase
                         $initial = false;
                         throw new TimeoutException('Socket timed out.');
                     }
-                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                    return yield $id . substr(base64_decode($response), self::ID_LENGTH);
                 };
                 return $generator($id, $response);
             });

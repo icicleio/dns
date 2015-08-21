@@ -44,9 +44,9 @@ class ResolverTest extends TestCase
     {
         $this->executor->shouldReceive('execute')
             ->with(Mockery::mustBe($domain), Mockery::mustBe(1), Mockery::type('array'))
-            ->andReturn((function () use ($answers, $authority) {
+            ->andReturnUsing(function () use ($answers, $authority) {
                 return yield $this->createMessage($answers, $authority);
-            })());
+            });
 
         $coroutine = new Coroutine($this->resolver->resolve($domain));
 
@@ -75,7 +75,7 @@ class ResolverTest extends TestCase
         $domain = 'example.com';
 
         $this->executor->shouldReceive('execute')
-            ->andReturn((function () { return yield $this->createMessage(); })());
+            ->andReturnUsing(function () { return yield $this->createMessage(); });
 
         $coroutine = new Coroutine($this->resolver->resolve($domain));
 

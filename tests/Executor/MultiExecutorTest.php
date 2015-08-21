@@ -53,7 +53,7 @@ class MultiExecutorTest extends TestCase
             ->method('execute')
             ->with($domain, $type)
             ->will($this->returnCallback(function () use ($message) {
-                yield $message;
+                return yield $message;
             }));
 
         $this->executor->add($executor);
@@ -110,7 +110,7 @@ class MultiExecutorTest extends TestCase
         $executor->expects($this->once())
             ->method('execute')
             ->will($this->returnCallback(function () {
-                yield $this->createMessage();
+                return yield $this->createMessage();
             }));
 
         $this->executor->add($executor);
@@ -143,7 +143,7 @@ class MultiExecutorTest extends TestCase
         $executor->expects($this->exactly(2))
             ->method('execute')
             ->will($this->returnCallback(function () {
-                yield $this->createMessage();
+                return yield $this->createMessage();
             }));
 
         $this->executor->add($executor);
