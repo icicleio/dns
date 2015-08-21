@@ -7,7 +7,6 @@ use Icicle\Dns\Exception\NoExecutorsError;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
-use Icicle\Promise;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Messages\Message;
 
@@ -53,7 +52,9 @@ class MultiExecutorTest extends TestCase
         $executor->expects($this->once())
             ->method('execute')
             ->with($domain, $type)
-            ->will($this->returnValue(Promise\resolve($message)));
+            ->will($this->returnCallback(function () use ($message) {
+                yield $message;
+            }));
 
         $this->executor->add($executor);
 
@@ -98,7 +99,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise\reject(new MessageException())));
+            ->will($this->returnCallback(function () {
+                throw new MessageException(); yield;
+            }));
 
         $this->executor->add($executor);
 
@@ -106,7 +109,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise\resolve($this->createMessage())));
+            ->will($this->returnCallback(function () {
+                yield $this->createMessage();
+            }));
 
         $this->executor->add($executor);
 
@@ -127,7 +132,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise\reject(new MessageException())));
+            ->will($this->returnCallback(function () {
+                throw new MessageException(); yield;
+            }));
 
         $this->executor->add($executor);
 
@@ -135,7 +142,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->exactly(2))
             ->method('execute')
-            ->will($this->returnValue(Promise\resolve($this->createMessage())));
+            ->will($this->returnCallback(function () {
+                yield $this->createMessage();
+            }));
 
         $this->executor->add($executor);
 
@@ -213,7 +222,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue(Promise\reject($exception)));
+            ->will($this->returnCallback(function () use ($exception) {
+                throw $exception; yield;
+            }));
 
         $this->executor->add($executor);
 
