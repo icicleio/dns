@@ -140,16 +140,16 @@ class Executor implements ExecutorInterface
         $data = $this->encoder->encode($request);
 
         /** @var \Icicle\Socket\Client\ClientInterface $client */
-        $client = yield $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]);
+        $client = yield from $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]);
 
         try {
             $attempt = 0;
 
             do {
                 try {
-                    yield $client->write($data);
+                    yield from $client->write($data);
 
-                    $response = yield $client->read(self::MAX_PACKET_SIZE, null, $timeout);
+                    $response = yield from $client->read(self::MAX_PACKET_SIZE, null, $timeout);
 
                     try {
                         $response = $this->decoder->decode($response);

@@ -24,7 +24,7 @@ $coroutine = Coroutine\create(function ($query, $type, $timeout = ExecutorInterf
     printf("Query: %s\n", $query);
 
     /** @var \LibDNS\Messages\Message $response */
-    $response = (yield $executor->execute($query, $type, ['timeout' => $timeout]));
+    $response = yield from $executor->execute($query, $type, ['timeout' => $timeout]);
 
     $answers = $response->getAnswerRecords();
 

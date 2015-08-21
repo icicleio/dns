@@ -15,11 +15,11 @@ $coroutine = Coroutine\create(function () {
     
     $connector = new Connector();
 
-    $client = new Client(yield $connector->connect('google.com', 443, ['name' => '*.google.com']));
+    $client = new Client(yield from $connector->connect('google.com', 443, ['name' => '*.google.com']));
     
     echo "Enabling crypto...\n";
     
-    yield $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
+    yield from $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
     
     echo "Crypto enabled.\n";
     
@@ -28,10 +28,10 @@ $coroutine = Coroutine\create(function () {
     $request .= "Connection: close\r\n";
     $request .= "\r\n";
     
-    yield $client->write($request);
+    yield from $client->write($request);
     
     while ($client->isReadable()) {
-        echo (yield $client->read());
+        echo (yield from $client->read());
     }
     
     echo "\n";
