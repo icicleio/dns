@@ -2,8 +2,8 @@
 
 This library is a component for [Icicle](https://github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library uses [Promises](https://github.com/icicleio/Icicle/wiki/Promises) and [Generators](http://www.php.net/manual/en/language.generators.overview.php) for asynchronous operations that may be used to build [Coroutines](//github.com/icicleio/Icicle/wiki/Coroutines) to make writing asynchronous code more like writing synchronous code.
 
-[![Build Status](https://img.shields.io/travis/icicleio/dns/master.svg?style=flat-square)](https://travis-ci.org/icicleio/dns)
-[![Coverage Status](https://img.shields.io/coveralls/icicleio/dns.svg?style=flat-square)](https://coveralls.io/r/icicleio/dns)
+[![Build Status](https://img.shields.io/travis/icicleio/dns/v1.x.svg?style=flat-square)](https://travis-ci.org/icicleio/dns)
+[![Coverage Status](https://img.shields.io/coveralls/icicleio/dns/v1.x.svg?style=flat-square)](https://coveralls.io/r/icicleio/dns)
 [![Semantic Version](https://img.shields.io/github/release/icicleio/dns.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/dns.svg?style=flat-square)](LICENSE)
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
@@ -28,7 +28,7 @@ You can also manually edit `composer.json` to add this library as a project requ
 // composer.json
 {
     "require": {
-        "icicleio/dns": "^0.4"
+        "icicleio/dns": "^0.5"
     }
 }
 ```
@@ -73,7 +73,7 @@ Loop\run();
 
 Methods returning a `Generator` can be used to create a [Coroutine](https://github.com/icicleio/icicle/wiki/Coroutines) (e.g., `new Coroutine($executor->execute(...))`) or yielded within another Coroutine (use `yield from` in PHP 7 for better performance).
 
-This library uses [LibDNS](//github.com/DaveRandom/LibDNS) to create and parse DNS messages. Unfortunately the documentation for this library is currently limited to DocComments in the source code. If using only the resolver and connector components of this library, there is no need to worry about how this library works. The executor component returns coroutines that are resolved with `LibDNS\Messages\Message` instances, representing the response from the DNS server. Using these objects is simple and will be described in the executor section below.
+This library uses [LibDNS](//github.com/DaveRandom/LibDNS) to create and parse DNS messages. Unfortunately the documentation for this library is currently limited to DocComments in the source code. If only using resolvers and connectors in this library, there is no need to worry about how LibDNS works. Executors returns coroutines that are resolved with `LibDNS\Messages\Message` instances, representing the response from the DNS server. Using these objects is simple and will be described in the executor section below.
 
 #### Function prototypes
 
@@ -124,13 +124,13 @@ The `Icicle\Dns\Executor\Executor` constructor also accepts an instance of `Icic
 
 ### Using an Executor
 
-Once created, an executor is used by calling the `execute()` method with the domain and type of DNS query to be performed. The type may be a case-insensitive string naming a record type (e.g., `'A'`, `'MX'`, `'NS'`, `'PTR'`, `'AAAA'`) or the integer value corresponding to a record type (`LibDNS\Records\ResourceQTypes` defines constants corresponding to a the integer value of a type). `execute()` returns a promise fulfilled with an instance of `LibDNS\Messages\Message` that represents the response from the name server. `LibDNS\Messages\Message` objects have several methods that will need to be used to fetch the data in the response.
+Once created, an executor is used by calling the `execute()` method with the domain and type of DNS query to be performed. The type may be a case-insensitive string naming a record type (e.g., `'A'`, `'MX'`, `'NS'`, `'PTR'`, `'AAAA'`) or the integer value corresponding to a record type (`LibDNS\Records\ResourceQTypes` defines constants corresponding to a the integer value of a type). `execute()` returns a coroutine fulfilled with an instance of `LibDNS\Messages\Message` that represents the response from the name server. `LibDNS\Messages\Message` objects have several methods that will need to be used to fetch the data in the response.
 
 - `getAnswerRecords()`: Returns an instance of `LibDNS\Records\RecordCollection`, a traversable collection of `LibDNS\Record\Resource` objects containing the response answer records.
 - `getAuthorityRecords()`: Returns an instance of `LibDNS\Records\RecordCollection` containing the response authority records.
 - `getAdditionalRecords()`: Returns an instance of `LibDNS\Records\RecordCollection` containing the response additional records.
 - `getAuthorityRecords()`: Returns an instance of `LibDNS\Records\RecordCollection` containing the response authority records.
-- `isAuthorative()`: Determines if the response is authoritative for the records returned.
+- `isAuthoritative()`: Determines if the response is authoritative for the records returned.
 
 DNS records in the traversable `LibDNS\Records\RecordCollection` objects are represented as instances of `LibDNS\Records\Resource`. These objects have several methods to access the data associated with the record.
 
@@ -255,7 +255,7 @@ Loop\run();
 
 ## Connector
 
-The connector component connects to a server by first resolving the hostname provided, then making the connection and resolving the returned promise with an instance of `Icicle\Socket\Client\ClientInterface`. `Icicle\Dns\Connector\Connector` implements `Icicle\Socket\Client\ConnectorInterface` and `Icicle\Dns\Connector\ConnectorInterface`, allowing it to be used anywhere a standard connector (`Icicle\Socket\Client\ConnectorInterface`) is required, or allowing components to require a resolving connector (`Icicle\Dns\Connector\ConnectorInterface`).
+The connector component connects to a server by first resolving the hostname provided, then making the connection and resolving the returned coroutine with an instance of `Icicle\Socket\Client\ClientInterface`. `Icicle\Dns\Connector\Connector` implements `Icicle\Socket\Client\ConnectorInterface` and `Icicle\Dns\Connector\ConnectorInterface`, allowing it to be used anywhere a standard connector (`Icicle\Socket\Client\ConnectorInterface`) is required, or allowing components to require a resolving connector (`Icicle\Dns\Connector\ConnectorInterface`).
 
 `Icicle\Dns\Connector\ConnectorInterface` defines a single method, `connect()` that should resolve a host name and connect to one of the resolved servers, resolving the coroutine with the connected client.
 
@@ -275,7 +275,7 @@ Option | Type | Description
 `timeout` | `float` | Timeout until query fails. Default is 2 seconds.
 `retries` | `int` | Number of times to attempt the query before failing. Default is 5 times.
 
-Additionally, all the [other options available](https://github.com/icicleio/socket#connect) to `Icicle\Socket\Client\Connector::connect()` are also available.
+Additionally, all the [other options available](https://github.com/icicleio/socket#connect) to `Icicle\Socket\Client\Connector::connect()` may also be used.
 
 Resolution | Type | Description
 :-: | :-- | :--
