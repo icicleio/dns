@@ -2,9 +2,7 @@
 namespace Icicle\Dns\Resolver;
 
 use Icicle\Dns\Exception\InvalidArgumentError;
-use Icicle\Dns\Executor\Executor;
-use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Dns\Executor\MultiExecutor;
+use Icicle\Dns\Executor\{Executor, ExecutorInterface, MultiExecutor};
 
 class Resolver implements ResolverInterface
 {

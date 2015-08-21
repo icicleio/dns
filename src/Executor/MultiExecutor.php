@@ -1,8 +1,7 @@
 <?php
 namespace Icicle\Dns\Executor;
 
-use Icicle\Dns\Exception\MessageException;
-use Icicle\Dns\Exception\NoExecutorsError;
+use Icicle\Dns\Exception\{MessageException, NoExecutorsError};
 
 class MultiExecutor implements ExecutorInterface
 {

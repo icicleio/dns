@@ -1,21 +1,18 @@
 <?php
 namespace Icicle\Dns\Executor;
 
-use Icicle\Dns\Exception\FailureException;
-use Icicle\Dns\Exception\InvalidTypeError;
-use Icicle\Dns\Exception\NoResponseException;
-use Icicle\Dns\Exception\ResponseCodeException;
-use Icicle\Dns\Exception\ResponseIdException;
+use Icicle\Dns\Exception\{
+    FailureException,
+    InvalidTypeError,
+    NoResponseException,
+    ResponseCodeException,
+    ResponseIdException
+};
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Socket\Client\Connector as ClientConnector;
-use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
-use LibDNS\Messages\Message;
-use LibDNS\Messages\MessageFactory;
-use LibDNS\Messages\MessageTypes;
-use LibDNS\Encoder\EncoderFactory;
-use LibDNS\Decoder\DecoderFactory;
-use LibDNS\Records\Question;
-use LibDNS\Records\QuestionFactory;
+use Icicle\Socket\Client\{Connector as ClientConnector, ConnectorInterface as ClientConnectorInterface};
+use LibDNS\{Encoder\EncoderFactory, Decoder\DecoderFactory};
+use LibDNS\Messages\{Message, MessageFactory, MessageTypes};
+use LibDNS\Records\{Question, QuestionFactory};
 
 class Executor implements ExecutorInterface
 {

@@ -2,11 +2,9 @@
 namespace Icicle\Dns\Connector;
 
 use Icicle\Dns\Exception\Exception as DnsException;
-use Icicle\Dns\Resolver\Resolver;
-use Icicle\Dns\Resolver\ResolverInterface;
+use Icicle\Dns\Resolver\{Resolver, ResolverInterface};
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Socket\Client\Connector as ClientConnector;
-use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
+use Icicle\Socket\Client\{Connector as ClientConnector, ConnectorInterface as ClientConnectorInterface};
 use Icicle\Socket\Exception\FailureException;
 
 class Connector implements ConnectorInterface
