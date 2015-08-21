@@ -14,15 +14,16 @@ class Resolver implements ResolverInterface
     private $executor;
     
     /**
-     * @param \Icicle\Dns\Executor\ExecutorInterface $executor
+     * @param \Icicle\Dns\Executor\ExecutorInterface|null $executor
      */
     public function __construct(ExecutorInterface $executor = null)
     {
+        // @codeCoverageIgnoreStart
         if (null === $executor) {
             $this->executor = new MultiExecutor();
             $this->executor->add(new Executor('8.8.8.8'));
             $this->executor->add(new Executor('8.8.4.4'));
-        } else {
+        } else { // @codeCoverageIgnoreEnd
             $this->executor = $executor;
         }
     }
