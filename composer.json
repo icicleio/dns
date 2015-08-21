@@ -25,13 +25,6 @@
         "mockery/mockery": "^0.9",
         "symfony/yaml": "^2.7"
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "2.0.x-dev",
-            "dev-v1.x": "1.x-dev",
-            "dev-v0.4.x": "0.4.x-dev"
-        }
-    },
     "autoload": {
         "psr-4": {
             "Icicle\\Dns\\": "src"
