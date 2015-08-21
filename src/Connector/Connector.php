@@ -2,7 +2,7 @@
 namespace Icicle\Dns\Connector;
 
 use Icicle\Dns\Exception\Exception as DnsException;
-use Icicle\Dns\Executor\ExecutorInterface;
+use Icicle\Dns\Resolver\Resolver;
 use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\Connector as ClientConnector;
@@ -24,35 +24,29 @@ class Connector implements ConnectorInterface
     private $connector;
     
     /**
-     * @param \Icicle\Dns\Resolver\ResolverInterface $resolver
-     * @param \Icicle\Socket\Client\ConnectorInterface $connector
+     * @param \Icicle\Dns\Resolver\ResolverInterface|null $resolver
+     * @param \Icicle\Socket\Client\ConnectorInterface|null $connector
      */
-    public function __construct(ResolverInterface $resolver, ClientConnectorInterface $connector = null)
+    public function __construct(ResolverInterface $resolver = null, ClientConnectorInterface $connector = null)
     {
-        $this->resolver = $resolver;
+        $this->resolver = $resolver ?: new Resolver();
         $this->connector = $connector ?: new ClientConnector();
     }
     
     /**
      * {@inheritdoc}
      */
-    public function connect(
-        $domain,
-        $port,
-        array $options = null,
-        float $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
-        int $retries = ExecutorInterface::DEFAULT_RETRIES
-    ): \Generator {
+    public function connect(string $domain, int $port, array $options = []): \Generator
+    {
         // Check if $domain is actually an IP address.
         if (preg_match(self::IP_REGEX, $domain)) {
             return yield from $this->connector->connect($domain, $port, $options);
         }
 
-        $default = ['name' => $domain];
-        $options = null === $options ? $default : array_merge($default, $options);
+        $options = array_merge(['name' => $domain], $options);
 
         try {
-            $ips = yield from $this->resolver->resolve($domain, $timeout, $retries);
+            $ips = yield from $this->resolver->resolve($domain, $options);
         } catch (DnsException $exception) {
             throw new FailureException(sprintf('Could not resolve host %s.', $domain), 0, $exception);
         }

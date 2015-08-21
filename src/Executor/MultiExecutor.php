@@ -7,63 +7,40 @@ use Icicle\Dns\Exception\NoExecutorsError;
 class MultiExecutor implements ExecutorInterface
 {
     /**
-     * @var \SplDoublyLinkedList
+     * @var ExecutorInterface[]
      */
-    private $executors;
-    
-    /**
-     */
-    public function __construct()
-    {
-        $this->executors = new \SplDoublyLinkedList();
-    }
+    private $executors = [];
     
     /**
      * @param \Icicle\Dns\Executor\ExecutorInterface
      */
     public function add(ExecutorInterface $executor)
     {
-        $this->executors->push($executor);
+        $this->executors[] = $executor;
     }
     
     /**
      * {@inheritdoc}
      */
-    public function execute(
-        string $name,
-        $type,
-        float $timeout = self::DEFAULT_TIMEOUT,
-        int $retries = self::DEFAULT_RETRIES
-    ): \Generator {
-        $retries = (int) $retries;
-        if (0 > $retries) {
-            $retries = 0;
-        }
-
-        if ($this->executors->isEmpty()) {
+    public function execute(string $name, $type, array $options = []): \Generator
+    {
+        if (empty($this->executors)) {
             throw new NoExecutorsError('No executors defined.');
         }
 
-        $executors = clone $this->executors;
-        $retries = ($retries + 1) * count($executors) - 1;
+        $executors = $this->executors;
+        $count = count($executors);
 
-        $attempt = 0;
-
-        do {
-            $executor = $executors->shift();
-
+        for ($i = 0; $i < $count; ++$i) {
             try {
-                return yield from $executor->execute($name, $type, $timeout, 0);
+                return yield from $executors[$i]->execute($name, $type, $options);
             } catch (MessageException $exception) {
-                // Push executor to the end of the list for this request.
-                $executors->push($executor);
-
                 // If it is still at the head, shift executor in main list to the tail for future requests.
-                if ($this->executors->bottom() === $executor) {
-                    $this->executors->push($this->executors->shift());
+                if ($this->executors[0] === $executors[$i]) {
+                    $this->executors[] = array_shift($this->executors);
                 }
             }
-        } while (++$attempt <= $retries);
+        }
 
         throw $exception;
     }

@@ -127,13 +127,11 @@ class Executor implements ExecutorInterface
     /**
      * {@inheritdoc}
      */
-    public function execute(
-        string $name,
-        $type,
-        float $timeout = self::DEFAULT_TIMEOUT,
-        int $retries = self::DEFAULT_RETRIES
-    ): \Generator {
-        $retries = (int) $retries;
+    public function execute(string $name, $type, array $options = []): \Generator
+    {
+        $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_TIMEOUT;
+        $retries = isset($options['retries']) ? (int) $options['retries'] : self::DEFAULT_RETRIES;
+
         if (0 > $retries) {
             $retries = 0;
         }

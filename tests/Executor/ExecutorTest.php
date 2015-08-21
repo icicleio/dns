@@ -9,7 +9,6 @@ use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Loop;
-use Icicle\Promise;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Client\ConnectorInterface;
@@ -123,18 +122,24 @@ class ExecutorTest extends TestCase
         Loop\run();
     }
 
-    public function execute($type, $domain, $request, $response, array $answers = null, array $authority = null)
+    public function execute($type, $domain, $request, $response, array $answers = [], array $authority = [])
     {
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
         $this->client->shouldReceive('read')
             ->andReturnUsing(function () use (&$id, $response) {
-                return Promise\resolve($id . substr(base64_decode($response), self::ID_LENGTH));
+                $generator = function ($id, $response) {
+                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                };
+                return $generator($id, $response);
             });
 
         $coroutine = new Coroutine($this->executor->execute($domain, $type));
@@ -169,7 +174,7 @@ class ExecutorTest extends TestCase
     /**
      * @dataProvider getARecords
      */
-    public function testARecords($domain, $request, $response, array $answers = null, array $authority = null)
+    public function testARecords($domain, $request, $response, array $answers = [], array $authority = [])
     {
         $this->execute('A', $domain, $request, $response, $answers, $authority);
     }
@@ -177,7 +182,7 @@ class ExecutorTest extends TestCase
     /**
      * @dataProvider getMxRecords
      */
-    public function testMxRecords($domain, $request, $response, array $answers = null, array $authority = null)
+    public function testMxRecords($domain, $request, $response, array $answers = [], array $authority = [])
     {
         $this->execute('MX', $domain, $request, $response, $answers, $authority);
     }
@@ -185,7 +190,7 @@ class ExecutorTest extends TestCase
     /**
      * @dataProvider getNsRecords
      */
-    public function testNsRecords($domain, $request, $response, array $answers = null, array $authority = null)
+    public function testNsRecords($domain, $request, $response, array $answers = [], array $authority = [])
     {
         $this->execute('NS', $domain, $request, $response, $answers, $authority);
     }
@@ -199,12 +204,18 @@ class ExecutorTest extends TestCase
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
         $this->client->shouldReceive('read')
             ->andReturnUsing(function () use (&$id, $response) {
-                return Promise\resolve($id . substr(base64_decode($response), 2));
+                $generator = function ($id, $response) {
+                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                };
+                return $generator($id, $response);
             });
 
         $coroutine = new Coroutine($this->executor->execute($domain, 'A'));
@@ -227,7 +238,10 @@ class ExecutorTest extends TestCase
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
         $this->client->shouldReceive('read')
@@ -235,7 +249,10 @@ class ExecutorTest extends TestCase
                 $id = unpack('n', $id)[1];
                 $id += 1;
                 $id = pack('n', $id);
-                return Promise\resolve($id . substr(base64_decode($response), self::ID_LENGTH));
+                $generator = function ($id, $response) {
+                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                };
+                return $generator($id, $response);
             });
 
         $coroutine = new Coroutine($this->executor->execute($domain, 'NS'));
@@ -257,11 +274,18 @@ class ExecutorTest extends TestCase
     {
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
+        $generator = function () {
+            yield '';
+        };
+
         $this->client->shouldReceive('read')
-            ->andReturn(Promise\resolve(''));
+            ->andReturn($generator());
 
         $coroutine = new Coroutine($this->executor->execute('example.com', 'A'));
 
@@ -281,13 +305,20 @@ class ExecutorTest extends TestCase
     {
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
-        $this->client->shouldReceive('read')
-            ->andReturn(Promise\resolve(''));
+        $generator = function () {
+            yield '';
+        };
 
-        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', 1, -1));
+        $this->client->shouldReceive('read')
+            ->andReturn($generator());
+
+        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', ['timeout' => 1, 'retries' => -1]));
 
         $coroutine->done($this->createCallback(0), $this->createCallback(1));
 
@@ -300,13 +331,24 @@ class ExecutorTest extends TestCase
 
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
-        $this->client->shouldReceive('read')
-            ->andReturn(Promise\reject(new TimeoutException('Socket timed out.')));
+        $generator = function () {
+            throw new TimeoutException('Socket timed out.'); yield;
+        };
 
-        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, 0));
+        $this->client->shouldReceive('read')
+            ->andReturnUsing($generator);
+
+        $coroutine = new Coroutine($this->executor->execute(
+            'example.com',
+            'A',
+            ['timeout' => $timeout, 'retries' => 0]
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -324,14 +366,21 @@ class ExecutorTest extends TestCase
 
         $this->client->shouldReceive('write')
             ->andReturnUsing(function ($data) {
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
         $this->client->shouldReceive('read')
             ->times(3)
-            ->andReturn(Promise\reject(new TimeoutException('Socket timed out.')));
+            ->andThrow(new TimeoutException('Socket timed out.'));
 
-        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, $retries));
+        $coroutine = new Coroutine($this->executor->execute(
+            'example.com',
+            'A',
+            ['timeout' => $timeout, 'retries' => $retries]
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -355,21 +404,31 @@ class ExecutorTest extends TestCase
             ->andReturnUsing(function ($data) use (&$id, $request) {
                 $id = substr($data, 0, self::ID_LENGTH);
                 $this->assertSame(substr(base64_decode($request), self::ID_LENGTH), substr($data, self::ID_LENGTH));
-                return Promise\resolve(strlen($data));
+                $generator = function ($data) {
+                    yield strlen($data);
+                };
+                return $generator($data);
             });
 
         $this->client->shouldReceive('read')
             ->times($retries)
             ->andReturnUsing(function () use (&$id, $response) {
                 static $initial = true;
-                if ($initial) {
-                    $initial = false;
-                    return Promise\reject(new TimeoutException('Socket timed out.'));
-                }
-                return Promise\resolve($id . substr(base64_decode($response), self::ID_LENGTH));
+                $generator = function ($id, $response) use (&$initial) {
+                    if ($initial) {
+                        $initial = false;
+                        throw new TimeoutException('Socket timed out.');
+                    }
+                    yield $id . substr(base64_decode($response), self::ID_LENGTH);
+                };
+                return $generator($id, $response);
             });
 
-        $coroutine = new Coroutine($this->executor->execute($domain, 'A', $timeout, $retries));
+        $coroutine = new Coroutine($this->executor->execute(
+            $domain,
+            'A',
+            ['timeout' => $timeout, 'retries' => $retries]
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

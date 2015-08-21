@@ -6,7 +6,6 @@ use Icicle\Dns\Connector\Connector;
 use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Loop;
-use Icicle\Promise;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Client\ConnectorInterface;
@@ -54,20 +53,22 @@ class ConnectorTest extends TestCase
     {
         $domain = 'example.com';
         $port = 443;
-        $timeout = 0.1;
-        $retries = 2;
         $ips = ['127.0.0.1'];
         $options = ['timeout' => 0.1, 'cn' => '*.example.com'];
 
+        $generator = function ($value) {
+            yield $value;
+        };
+
         $this->resolver->shouldReceive('resolve')
-            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
-            ->andReturn((function () use ($ips) { return yield $ips; })());
+            ->with(Mockery::mustBe($domain), Mockery::type('array'))
+            ->andReturn($generator($ips));
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
-            ->andReturn((function () { return yield Mockery::mock(ClientInterface::class); })());
+            ->andReturn($generator(Mockery::mock(ClientInterface::class)));
 
-        $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
+        $promise = new Coroutine($this->connector->connect($domain, $port, $options));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -91,12 +92,14 @@ class ConnectorTest extends TestCase
         $options = ['timeout' => 0.1, 'name' => '*.example.com'];
 
         $this->resolver->shouldReceive('resolve')
-            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
-            ->andReturn((function () use ($ips) { return yield $ips; })());
+            ->with(Mockery::mustBe($domain), Mockery::type('array'))
+            ->andReturn($ips);
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ips[0]), Mockery::mustBe($port), Mockery::type('array'))
-            ->andThrow(TimeoutException::class);
+            ->andReturnUsing(function () {
+                throw new TimeoutException('Request timed out.'); yield;
+            });
 
         $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
 
@@ -118,8 +121,8 @@ class ConnectorTest extends TestCase
         $options = ['timeout' => 0.1, 'name' => '*.example.com'];
 
         $this->resolver->shouldReceive('resolve')
-            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
-            ->andReturn((function () { return yield []; })());
+            ->with(Mockery::mustBe($domain), Mockery::type('array'))
+            ->andReturn([]);
 
         $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
 
@@ -141,7 +144,7 @@ class ConnectorTest extends TestCase
         $options = ['timeout' => 0.1, 'name' => '*.example.com'];
 
         $this->resolver->shouldReceive('resolve')
-            ->with(Mockery::mustBe($domain), Mockery::mustBe($timeout), Mockery::mustBe($retries))
+            ->with(Mockery::mustBe($domain), Mockery::type('array'))
             ->andThrow(NoResponseException::class);
 
         $promise = new Coroutine($this->connector->connect($domain, $port, $options, $timeout, $retries));
@@ -165,18 +168,21 @@ class ConnectorTest extends TestCase
         $ips = ['127.0.0.1', '127.0.0.2', '127.0.0.3'];
 
         $this->resolver->shouldReceive('resolve')
-            ->with(Mockery::mustBe($domain), Mockery::any(), Mockery::type('integer'))
-            ->andReturn((function () use ($ips) { return yield $ips; })());
+            ->with(Mockery::mustBe($domain), Mockery::type('array'))
+            ->andReturn($ips);
 
         $this->clientConnector->shouldReceive('connect')
             ->times(2)
             ->andReturnUsing(function () {
                 static $initial = true;
-                if ($initial) {
-                    $initial = false;
-                    return (function () { throw new FailureException(); yield; })();
-                }
-                return (function () { return yield Mockery::mock(ClientInterface::class); })();
+                $generator = function () use (&$initial) {
+                    if ($initial) {
+                        $initial = false;
+                        throw new FailureException();
+                    }
+                    yield Mockery::mock(ClientInterface::class);
+                };
+                return $generator();
             });
 
         $promise = new Coroutine($this->connector->connect($domain, $port));
@@ -200,8 +206,8 @@ class ConnectorTest extends TestCase
         $ips = ['127.0.0.1'];
 
         $this->resolver->shouldReceive('resolve')
-            ->with(Mockery::mustBe($domain), Mockery::any(), Mockery::type('integer'))
-            ->andReturn((function () use ($ips) { return yield $ips; })());
+            ->with(Mockery::mustBe($domain), Mockery::type('array'))
+            ->andReturn($ips);
 
         $this->clientConnector->shouldReceive('connect')
             ->with(identicalTo($ips[0]), identicalTo($port), identicalTo(['name' => $domain]));
@@ -238,7 +244,9 @@ class ConnectorTest extends TestCase
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
-            ->andReturn((function () { return yield $this->getMock(ClientInterface::class); })());
+            ->andReturnUsing(function () {
+                yield Mockery::mock(ClientInterface::class);
+            });
 
         $promise = new Coroutine($this->connector->connect($ip, $port));
 
@@ -276,7 +284,9 @@ class ConnectorTest extends TestCase
 
         $this->clientConnector->shouldReceive('connect')
             ->with(Mockery::mustBe($ip), Mockery::mustBe($port), Mockery::any())
-            ->andReturn((function () { return yield $this->getMock(ClientInterface::class); })());
+            ->andReturnUsing(function () {
+                yield Mockery::mock(ClientInterface::class);
+            });
 
         $promise = new Coroutine($this->connector->connect($ip, $port));
 

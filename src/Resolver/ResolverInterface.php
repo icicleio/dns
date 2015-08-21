@@ -1,26 +1,22 @@
 <?php
 namespace Icicle\Dns\Resolver;
 
-use Icicle\Dns\Executor\ExecutorInterface;
-
 interface ResolverInterface
 {
+    const IPv4 = 1;  // A
+    const IPv6 = 28; // AAAA
+
     /**
      * @coroutine
      *
      * @param   string $domain Domain name to resolve.
-     * @param   int|float $timeout Time until a request fails
-     * @param   int $retries Number of times to retry the request until failing.
+     * @param   mixed[] $options
      *
      * @return  \Generator
      *
-     * @resolve string[] List of IP address. Will always contain at least one IP, otherwise the promise is rejected.
+     * @resolve string[] List of IP address. May return an empty array if the host cannot be found.
      *
-     * @reject \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
+     * @throws \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
      */
-    public function resolve(
-        string $domain,
-        float $timeout = ExecutorInterface::DEFAULT_TIMEOUT,
-        int $retries = ExecutorInterface::DEFAULT_RETRIES
-    ): \Generator;
+    public function resolve(string $domain, array $options = []): \Generator;
 }

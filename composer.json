@@ -17,7 +17,6 @@
     ],
     "require": {
         "icicleio/icicle": "~2.0",
-        "icicleio/stream": "~2.0",
         "icicleio/socket": "~2.0",
         "daverandom/libdns": "^1"
     },
@@ -29,9 +28,7 @@
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.0.x-dev",
-            "dev-v1.x": "1.x-dev",
-            "dev-v0.4.x": "0.4.x-dev"
+            "dev-master": "2.0.x-dev"
         }
     },
     "autoload": {

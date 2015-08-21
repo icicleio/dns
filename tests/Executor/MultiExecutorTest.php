@@ -7,7 +7,6 @@ use Icicle\Dns\Exception\NoExecutorsError;
 use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
-use Icicle\Promise;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Messages\Message;
 
@@ -53,7 +52,9 @@ class MultiExecutorTest extends TestCase
         $executor->expects($this->once())
             ->method('execute')
             ->with($domain, $type)
-            ->will($this->returnValue((function () use ($message) { return yield $message; })()));
+            ->will($this->returnCallback(function () use ($message) {
+                yield $message;
+            }));
 
         $this->executor->add($executor);
 
@@ -98,7 +99,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->throwException(new MessageException()));
+            ->will($this->returnCallback(function () {
+                throw new MessageException(); yield;
+            }));
 
         $this->executor->add($executor);
 
@@ -106,7 +109,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->returnValue((function () { return yield $this->createMessage(); })()));
+            ->will($this->returnCallback(function () {
+                yield $this->createMessage();
+            }));
 
         $this->executor->add($executor);
 
@@ -127,7 +132,9 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->throwException(new MessageException()));
+            ->will($this->returnCallback(function () {
+                throw new MessageException(); yield;
+            }));
 
         $this->executor->add($executor);
 
@@ -136,7 +143,7 @@ class MultiExecutorTest extends TestCase
         $executor->expects($this->exactly(2))
             ->method('execute')
             ->will($this->returnCallback(function () {
-                return (function () { return yield $this->createMessage(); })();
+                yield $this->createMessage();
             }));
 
         $this->executor->add($executor);
@@ -170,21 +177,29 @@ class MultiExecutorTest extends TestCase
 
         $executor = $this->createExecutor();
 
-        $executor->expects($this->exactly($retries + 1))
+        $generator = function () use ($exception) {
+            throw $exception; yield;
+        };
+
+        $executor->expects($this->once())
             ->method('execute')
-            ->will($this->throwException($exception));
+            ->will($this->returnCallback($generator));
 
         $this->executor->add($executor);
 
         $executor = $this->createExecutor();
 
-        $executor->expects($this->exactly($retries + 1))
+        $executor->expects($this->once())
             ->method('execute')
-            ->will($this->throwException($exception));
+            ->will($this->returnCallback($generator));
 
         $this->executor->add($executor);
 
-        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, $retries));
+        $coroutine = new Coroutine($this->executor->execute(
+            'example.com',
+            'A',
+            ['timeout' => $timeout, 'retries' => $retries]
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -207,11 +222,17 @@ class MultiExecutorTest extends TestCase
 
         $executor->expects($this->once())
             ->method('execute')
-            ->will($this->throwException($exception));
+            ->will($this->returnCallback(function () use ($exception) {
+                throw $exception; yield;
+            }));
 
         $this->executor->add($executor);
 
-        $coroutine = new Coroutine($this->executor->execute('example.com', 'A', $timeout, -1));
+        $coroutine = new Coroutine($this->executor->execute(
+            'example.com',
+            'A',
+            ['timeout' => $timeout, 'retries' => -1]
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

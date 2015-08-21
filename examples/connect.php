@@ -5,19 +5,17 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine;
 use Icicle\Dns\Connector\Connector;
-use Icicle\Dns\Executor\Executor;
-use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
+use Icicle\Socket\Client\Client;
 
 $timer = Loop\periodic(0.01, function () { echo "Waiting... " . microtime(true) . "\n"; });
 
 $coroutine = Coroutine\create(function () {
     echo "Connecting to google.com...\n";
     
-    $connector = new Connector(new Resolver(new Executor('8.8.8.8')));
+    $connector = new Connector();
 
-    /** @var \Icicle\Socket\Client\ClientInterface $client */
-    $client = (yield $connector->connect('google.com', 443, ['name' => '*.google.com']));
+    $client = new Client(yield $connector->connect('google.com', 443, ['name' => '*.google.com']));
     
     echo "Enabling crypto...\n";
     
@@ -40,7 +38,7 @@ $coroutine = Coroutine\create(function () {
 });
 
 $coroutine
-    ->cleanup([$timer, 'cancel'])
+    ->cleanup([$timer, 'stop'])
     ->capture(function (Exception $e) {
         echo "Exception: {$e->getMessage()}\n";
     }

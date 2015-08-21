@@ -21,29 +21,28 @@ $coroutine = Coroutine\create(function ($query, $type, $timeout = ExecutorInterf
     $executor->add(new Executor('8.8.8.8'));
     $executor->add(new Executor('8.8.4.4'));
 
-    echo "Query: {$query}:\n";
+    printf("Query: %s\n", $query);
 
     /** @var \LibDNS\Messages\Message $response */
-    $response = (yield $executor->execute($query, $type, $timeout));
+    $response = (yield $executor->execute($query, $type, ['timeout' => $timeout]));
 
     $answers = $response->getAnswerRecords();
 
     /** @var \LibDNS\Records\Resource $record */
     foreach ($answers as $record) {
-        echo "Result: Type:{$record->getType()} TTL:{$record->getTTL()} {$record->getData()}\n";
+        printf("Result: Type: %s TTL: %d %s\n", $record->getType(), $record->getTTL(), $record->getData());
     }
 
     $authority = $response->getAuthorityRecords();
 
     /** @var \LibDNS\Records\Resource $record */
     foreach ($authority as $record) {
-        echo "Authority: Type:{$record->getType()} TTL:{$record->getTTL()} {$record->getData()}\n";
+        printf("Authority: Type: %s TTL: %d %s\n", $record->getType(), $record->getTTL(), $record->getData());
     }
 }, $domain, $type);
 
 $coroutine->capture(function (Exception $e) {
-    $class = get_class($e);
-    echo "Exception of type {$class}: {$e->getMessage()}\n";
+    printf("Exception of type %s: %s\n", get_class($e), $e->getMessage());
 });
 
 Loop\run();
