@@ -18,7 +18,7 @@ $coroutine = Coroutine\create(function ($query, $timeout = 1) {
     
     $resolver = new Resolver();
     
-    $ips = yield $resolver->resolve($query, ['timeout' => $timeout]);
+    $ips = yield from $resolver->resolve($query, ['timeout' => $timeout]);
     
     foreach ($ips as $ip) {
         printf("IP: %s\n", $ip);
