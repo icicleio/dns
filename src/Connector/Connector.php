@@ -9,8 +9,8 @@
 
 namespace Icicle\Dns\Connector;
 
+use Icicle\Dns;
 use Icicle\Dns\Exception\Exception as DnsException;
-use Icicle\Dns\Resolver\Resolver;
 use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket;
@@ -37,7 +37,7 @@ class Connector implements ConnectorInterface
      */
     public function __construct(ResolverInterface $resolver = null, SocketConnectorInterface $connector = null)
     {
-        $this->resolver = $resolver ?: new Resolver();
+        $this->resolver = $resolver ?: Dns\resolver();
         $this->connector = $connector ?: Socket\connector();
     }
     

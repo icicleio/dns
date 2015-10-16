@@ -9,10 +9,9 @@
 
 namespace Icicle\Dns\Resolver;
 
+use Icicle\Dns;
 use Icicle\Dns\Exception\InvalidArgumentError;
-use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Dns\Executor\MultiExecutor;
 
 class Resolver implements ResolverInterface
 {
@@ -26,14 +25,7 @@ class Resolver implements ResolverInterface
      */
     public function __construct(ExecutorInterface $executor = null)
     {
-        // @codeCoverageIgnoreStart
-        if (null === $executor) {
-            $this->executor = new MultiExecutor();
-            $this->executor->add(new Executor('8.8.8.8'));
-            $this->executor->add(new Executor('8.8.4.4'));
-        } else { // @codeCoverageIgnoreEnd
-            $this->executor = $executor;
-        }
+        $this->executor = $executor ?: Dns\executor();
     }
     
     /**
