@@ -34,7 +34,10 @@
     "autoload": {
         "psr-4": {
             "Icicle\\Dns\\": "src"
-        }
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -9,7 +9,7 @@
 
 namespace Icicle\Dns\Connector;
 
-interface ConnectorInterface extends \Icicle\Socket\Client\ConnectorInterface
+interface ConnectorInterface
 {
     /**
      * @coroutine
