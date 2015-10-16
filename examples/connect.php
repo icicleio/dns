@@ -4,22 +4,20 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine;
-use Icicle\Dns\Connector\Connector;
+use Icicle\Dns;
 use Icicle\Loop;
-use Icicle\Socket\Client\Client;
 
 $timer = Loop\periodic(0.01, function () { echo "Waiting... " . microtime(true) . "\n"; });
 
 $coroutine = Coroutine\create(function () {
     echo "Connecting to google.com...\n";
-    
-    $connector = new Connector();
 
-    $client = new Client(yield $connector->connect('google.com', 443, ['name' => '*.google.com']));
+    /** @var \Icicle\Socket\SocketInterface $socket */
+    $socket = (yield Dns\connect('google.com', 443, ['name' => '*.google.com']));
     
     echo "Enabling crypto...\n";
     
-    yield $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
+    yield $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
     
     echo "Crypto enabled.\n";
     
@@ -28,13 +26,13 @@ $coroutine = Coroutine\create(function () {
     $request .= "Connection: close\r\n";
     $request .= "\r\n";
     
-    yield $client->write($request);
+    yield $socket->write($request);
     
-    while ($client->isReadable()) {
-        echo (yield $client->read());
+    while ($socket->isReadable()) {
+        echo (yield $socket->read());
     }
     
-    echo "\n";
+    echo "\nDone.\n";
 });
 
 $coroutine

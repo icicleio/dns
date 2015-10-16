@@ -4,9 +4,8 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine;
-use Icicle\Dns\Executor\Executor;
+use Icicle\Dns;
 use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
 
 if (3 > $argc) {
@@ -17,14 +16,10 @@ $domain = $argv[1];
 $type = $argv[2];
 
 $coroutine = Coroutine\create(function ($query, $type, $timeout = ExecutorInterface::DEFAULT_TIMEOUT) {
-    $executor = new MultiExecutor();
-    $executor->add(new Executor('8.8.8.8'));
-    $executor->add(new Executor('8.8.4.4'));
-
     printf("Query: %s\n", $query);
 
     /** @var \LibDNS\Messages\Message $response */
-    $response = (yield $executor->execute($query, $type, ['timeout' => $timeout]));
+    $response = (yield Dns\execute($query, $type, ['timeout' => $timeout]));
 
     $answers = $response->getAnswerRecords();
 
