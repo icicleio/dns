@@ -15,8 +15,8 @@ use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Exception\ResponseCodeException;
 use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Socket\Client\Connector as ClientConnector;
-use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
+use Icicle\Socket;
+use Icicle\Socket\Connector\ConnectorInterface as SocketConnectorInterface;
 use LibDNS\Messages\MessageFactory;
 use LibDNS\Messages\MessageTypes;
 use LibDNS\Encoder\EncoderFactory;
@@ -108,16 +108,16 @@ class Executor implements ExecutorInterface
     private $decoder;
 
     /**
-     * @var \Icicle\Socket\Client\ConnectorInterface
+     * @var \Icicle\Socket\Connector\ConnectorInterface
      */
     private $connector;
     
     /**
      * @param string $address Name server IP address to resolve queries.
      * @param int $port
-     * @param \Icicle\Socket\Client\ConnectorInterface|null $connector
+     * @param \Icicle\Socket\Connector\ConnectorInterface|null $connector
      */
-    public function __construct($address, $port = self::DEFAULT_PORT, ClientConnectorInterface $connector = null)
+    public function __construct($address, $port = self::DEFAULT_PORT, SocketConnectorInterface $connector = null)
     {
         $this->address = $address;
         $this->port = $port;
@@ -128,7 +128,7 @@ class Executor implements ExecutorInterface
         $this->encoder = (new EncoderFactory())->create();
         $this->decoder = (new DecoderFactory())->create();
 
-        $this->connector = $connector ?: new ClientConnector();
+        $this->connector = $connector ?: Socket\connector();
     }
     
     /**
@@ -149,17 +149,17 @@ class Executor implements ExecutorInterface
 
         $data = $this->encoder->encode($request);
 
-        /** @var \Icicle\Socket\Client\ClientInterface $client */
-        $client = (yield $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]));
+        /** @var \Icicle\Socket\SocketInterface $socket */
+        $socket = (yield $this->connector->connect($this->address, $this->port, ['protocol' => self::PROTOCOL]));
 
         try {
             $attempt = 0;
 
             do {
                 try {
-                    yield $client->write($data);
+                    yield $socket->write($data);
 
-                    $response = (yield $client->read(self::MAX_PACKET_SIZE, null, $timeout));
+                    $response = (yield $socket->read(self::MAX_PACKET_SIZE, null, $timeout));
 
                     try {
                         $response = $this->decoder->decode($response);
@@ -184,7 +184,7 @@ class Executor implements ExecutorInterface
 
             throw new NoResponseException('No response from server.');
         } finally {
-            $client->close();
+            $socket->close();
         }
     }
 

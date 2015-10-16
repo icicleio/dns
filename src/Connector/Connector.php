@@ -13,8 +13,8 @@ use Icicle\Dns\Exception\Exception as DnsException;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Dns\Resolver\ResolverInterface;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Socket\Client\Connector as ClientConnector;
-use Icicle\Socket\Client\ConnectorInterface as ClientConnectorInterface;
+use Icicle\Socket;
+use Icicle\Socket\Connector\ConnectorInterface as SocketConnectorInterface;
 use Icicle\Socket\Exception\FailureException;
 
 class Connector implements ConnectorInterface
@@ -27,24 +27,24 @@ class Connector implements ConnectorInterface
     private $resolver;
     
     /**
-     * @var \Icicle\Socket\Client\ConnectorInterface
+     * @var \Icicle\Socket\Connector\ConnectorInterface
      */
     private $connector;
     
     /**
      * @param \Icicle\Dns\Resolver\ResolverInterface|null $resolver
-     * @param \Icicle\Socket\Client\ConnectorInterface|null $connector
+     * @param \Icicle\Socket\Connector\ConnectorInterface|null $connector
      */
-    public function __construct(ResolverInterface $resolver = null, ClientConnectorInterface $connector = null)
+    public function __construct(ResolverInterface $resolver = null, SocketConnectorInterface $connector = null)
     {
         $this->resolver = $resolver ?: new Resolver();
-        $this->connector = $connector ?: new ClientConnector();
+        $this->connector = $connector ?: Socket\connector();
     }
     
     /**
      * {@inheritdoc}
      */
-    public function connect($domain, $port, array $options = [])
+    public function connect($domain, $port = null, array $options = [])
     {
         // Check if $domain is actually an IP address.
         if (preg_match(self::IP_REGEX, $domain)) {

@@ -18,8 +18,8 @@ use Icicle\Dns\Exception\ResponseIdException;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Loop;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Socket\Client\ClientInterface;
-use Icicle\Socket\Client\ConnectorInterface;
+use Icicle\Socket\Connector\ConnectorInterface;
+use Icicle\Socket\SocketInterface;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Messages\Message;
 use Mockery;
@@ -33,14 +33,14 @@ class ExecutorTest extends TestCase
     /**
      * Mock connector.
      *
-     * @var \Icicle\Socket\Client\ConnectorInterface
+     * @var \Icicle\Socket\Connector\ConnectorInterface
      */
     protected $connector;
 
     /**
      * Mock socket client.
      *
-     * @var \Icicle\Socket\Client\ClientInterface
+     * @var \Icicle\Socket\SocketInterface
      */
     protected $client;
 
@@ -59,11 +59,11 @@ class ExecutorTest extends TestCase
     }
 
     /**
-     * @return \Icicle\Socket\Client\ClientInterface
+     * @return \Icicle\Socket\SocketInterface
      */
     public function createClient()
     {
-        $mock = Mockery::mock(ClientInterface::class);
+        $mock = Mockery::mock(SocketInterface::class);
 
         $mock->shouldReceive('close');
 
@@ -71,11 +71,11 @@ class ExecutorTest extends TestCase
     }
 
     /**
-     * @param \Icicle\Socket\Client\ClientInterface $client
+     * @param \Icicle\Socket\SocketInterface $client
      *
-     * @return \Icicle\Socket\Client\ConnectorInterface
+     * @return \Icicle\Socket\Connector\ConnectorInterface
      */
-    public function createConnector(ClientInterface $client)
+    public function createConnector(SocketInterface $client)
     {
         $mock = Mockery::mock(ConnectorInterface::class);
 
