@@ -254,7 +254,7 @@ class Executor implements ExecutorInterface
      */
     protected function createId(): int
     {
-        return mt_rand(0, 0xffff);
+        return random_int(0, 0xffff);
     }
 
     /**
