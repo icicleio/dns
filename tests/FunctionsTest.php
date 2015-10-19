@@ -31,7 +31,10 @@ class FunctionsTest extends TestCase
         $executor = $this->getMock(ExecutorInterface::class);
         Dns\executor($executor);
 
-        $this->assertSame($executor, Dns\executor());
+        $executor->expects($this->once())
+            ->method('execute');
+
+        Dns\executor()->execute('icicle.io', 'A');
     }
 
     /**
@@ -49,7 +52,7 @@ class FunctionsTest extends TestCase
             ->method('execute')
             ->with($this->identicalTo($domain), $this->identicalTo($type), $this->identicalTo($options))
             ->will($this->returnCallback(function () {
-                yield $this->getMockBuilder(Message::class)
+                return yield $this->getMockBuilder(Message::class)
                     ->disableOriginalConstructor()
                     ->getMock();
             }));
@@ -70,7 +73,10 @@ class FunctionsTest extends TestCase
         $resolver = $this->getMock(ResolverInterface::class);
         Dns\resolver($resolver);
 
-        $this->assertSame($resolver, Dns\resolver());
+        $resolver->expects($this->once())
+            ->method('resolve');
+
+        Dns\resolver()->resolve('icicle.io');
     }
 
     /**
@@ -87,7 +93,7 @@ class FunctionsTest extends TestCase
             ->method('resolve')
             ->with($this->identicalTo($domain), $this->identicalTo($options))
             ->will($this->returnCallback(function () {
-                yield [];
+                return yield [];
             }));
 
         $this->assertInstanceOf(\Generator::class, Dns\resolve($domain, $options));
@@ -106,7 +112,10 @@ class FunctionsTest extends TestCase
         $connector = $this->getMock(ConnectorInterface::class);
         Dns\connector($connector);
 
-        $this->assertSame($connector, Dns\connector());
+        $connector->expects($this->once())
+            ->method('connect');
+
+        Dns\connector()->connect('icicle.io', 80);
     }
 
     /**
@@ -124,7 +133,7 @@ class FunctionsTest extends TestCase
             ->method('connect')
             ->with($this->identicalTo($domain), $this->identicalTo($port), $this->identicalTo($options))
             ->will($this->returnCallback(function () {
-                yield $this->getMock(SocketInterface::class);
+                return yield $this->getMock(SocketInterface::class);
             }));
 
         $this->assertInstanceOf(\Generator::class, Dns\connect($domain, $port, $options));
