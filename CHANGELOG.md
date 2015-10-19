@@ -1,5 +1,20 @@
 # Changelog
 
+### v0.5.2
+
+- New Features
+    - Added the following functions in the `Icicle\Dns` namespace:
+        - `execute()` - Executes a DNS query.
+        - `executor()` - Accesses and sets the global executor used by `execute()`.
+        - `resolve()` - Resolves the IP(s) for a given domain.
+        - `resolver()` - Accesses and sets the global resolver used by `resolve()`.
+        - `connect()` - Connects to a remote domain on a given port.
+        - `connect()` - Accesses and sets the global connector used by `connect()`.
+
+- Updated dependencies to require `icicleio/socket` ^0.4.
+        
+---
+
 ### v0.5.1
 
 - Updated dependencies to allow `icicleio/socket` ^0.3.
