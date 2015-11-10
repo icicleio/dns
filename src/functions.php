@@ -9,13 +9,9 @@
 
 namespace Icicle\Dns;
 
-use Icicle\Dns\Connector\Connector;
-use Icicle\Dns\Connector\ConnectorInterface;
-use Icicle\Dns\Executor\Executor;
-use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Dns\Executor\MultiExecutor;
-use Icicle\Dns\Resolver\Resolver;
-use Icicle\Dns\Resolver\ResolverInterface;
+use Icicle\Dns\Connector\{Connector, ConnectorInterface};
+use Icicle\Dns\Executor\{Executor, ExecutorInterface, MultiExecutor};
+use Icicle\Dns\Resolver\{Resolver, ResolverInterface};
 
 if (!function_exists(__NAMESPACE__ . '\execute')) {
     /**
@@ -33,7 +29,7 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
      *
      * @resolve \LibDNS\Messages\Message Response message.
      */
-    function execute($name, $type, array $options = [])
+    function execute($name, $type, array $options = []): \Generator
     {
         return executor()->execute($name, $type, $options);
     }
@@ -45,7 +41,7 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
      *
      * @return \Icicle\Dns\Executor\ExecutorInterface
      */
-    function executor(ExecutorInterface $executor = null)
+    function executor(ExecutorInterface $executor = null): ExecutorInterface
     {
         static $instance;
 
@@ -74,7 +70,7 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
      *
      * @resolve array Array of IP addresses.
      */
-    function resolve($domain, array $options = [])
+    function resolve($domain, array $options = []): \Generator
     {
         return resolver()->resolve($domain, $options);
     }
@@ -86,7 +82,7 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
      *
      * @return \Icicle\Dns\Resolver\ResolverInterface
      */
-    function resolver(ResolverInterface $resolver = null)
+    function resolver(ResolverInterface $resolver = null): ResolverInterface
     {
         static $instance;
 
@@ -114,7 +110,7 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
      *
      * @resolve \Icicle\Socket\SocketInterface
      */
-    function connect($domain, $port, array $options = [])
+    function connect($domain, $port, array $options = []): \Generator
     {
         return connector()->connect($domain, $port, $options);
     }
@@ -126,7 +122,7 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
      *
      * @return \Icicle\Dns\Connector\ConnectorInterface
      */
-    function connector(ConnectorInterface $connector = null)
+    function connector(ConnectorInterface $connector = null): ConnectorInterface
     {
         static $instance;
 
