@@ -11,17 +11,17 @@ namespace Icicle\Dns\Executor;
 
 use Icicle\Dns\Exception\{MessageException, NoExecutorsError};
 
-class MultiExecutor implements ExecutorInterface
+class MultiExecutor implements Executor
 {
     /**
-     * @var ExecutorInterface[]
+     * @var Executor[]
      */
     private $executors = [];
     
     /**
-     * @param \Icicle\Dns\Executor\ExecutorInterface
+     * @param \Icicle\Dns\Executor\Executor
      */
-    public function add(ExecutorInterface $executor)
+    public function add(Executor $executor)
     {
         $this->executors[] = $executor;
     }

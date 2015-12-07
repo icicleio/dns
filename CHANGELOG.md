@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.6.0
+
+- Changes
+    - All interface names have been changed to remove the `Interface` suffix. Since most classes in this package would now conflict with the interface names, the classes are prefixed with either `Basic` or `Default` (e.g.: `Icicle\Dns\Executor\BasicExecutor` and `Icicle\Dns\Connector\DefaultConnector`).
+
+---
+
 ### v0.5.2
 
 - New Features
@@ -10,8 +17,6 @@
         - `resolver()` - Accesses and sets the global resolver used by `resolve()`.
         - `connect()` - Connects to a remote domain on a given port.
         - `connect()` - Accesses and sets the global connector used by `connect()`.
-
-- Updated dependencies to require `icicleio/socket` ^0.4.
         
 ---
 

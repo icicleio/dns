@@ -9,4 +9,4 @@
 
 namespace Icicle\Dns\Exception;
 
-class NoExecutorsError extends Error {}
+class NoExecutorsError extends \Exception implements Error {}

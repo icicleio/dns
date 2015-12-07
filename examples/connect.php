@@ -12,7 +12,7 @@ $timer = Loop\periodic(0.01, function () { echo "Waiting... " . microtime(true) 
 $coroutine = Coroutine\create(function () {
     echo "Connecting to google.com...\n";
 
-    /** @var \Icicle\Socket\SocketInterface $socket */
+    /** @var \Icicle\Socket\Socket $socket */
     $socket = yield from Dns\connect('google.com', 443, ['name' => '*.google.com']);
     
     echo "Enabling crypto...\n";
@@ -40,6 +40,6 @@ $coroutine
     ->capture(function (Exception $e) {
         echo "Exception: {$e->getMessage()}\n";
     }
-);
+)->done();
 
 Loop\run();

@@ -10,18 +10,18 @@
 namespace Icicle\Tests\Dns\Resolver;
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Exception\InvalidArgumentError;
-use Icicle\Dns\Executor\ExecutorInterface;
+use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Resolver\BasicResolver;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Dns\Resolver\ResolverInterface;
+use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
 use Icicle\Tests\Dns\TestCase;
 use Mockery;
 
-class ResolverTest extends TestCase
+class BasicResolverTest extends TestCase
 {
     /**
-     * @var \Icicle\Dns\Executor\ExecutorInterface
+     * @var \Icicle\Dns\Executor\Executor
      */
     protected $executor;
 
@@ -34,15 +34,15 @@ class ResolverTest extends TestCase
     {
         $this->executor = $this->createExecutor();
 
-        $this->resolver = new Resolver($this->executor);
+        $this->resolver = new BasicResolver($this->executor);
     }
 
     /**
-     * @return \Icicle\Dns\Executor\ExecutorInterface
+     * @return \Icicle\Dns\Executor\Executor
      */
     public function createExecutor()
     {
-        return Mockery::mock(ExecutorInterface::class);
+        return Mockery::mock(Executor::class);
     }
 
     /**
@@ -125,7 +125,7 @@ class ResolverTest extends TestCase
 
         $coroutine->done($callback);
 
-        $coroutine = new Coroutine($this->resolver->resolve('localhost', ['mode' => ResolverInterface::IPv6]));
+        $coroutine = new Coroutine($this->resolver->resolve('localhost', ['mode' => Resolver::IPv6]));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

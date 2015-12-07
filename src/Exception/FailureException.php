@@ -9,7 +9,7 @@
 
 namespace Icicle\Dns\Exception;
 
-class FailureException extends Exception
+class FailureException extends \Exception implements Exception
 {
     public function __construct(\Exception $exception)
     {

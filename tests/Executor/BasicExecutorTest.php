@@ -9,22 +9,22 @@
 
 namespace Icicle\Tests\Dns\Executor;
 
+use Icicle\Awaitable\Exception\TimeoutException;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\Exception;
 use Icicle\Dns\Exception\FailureException;
 use Icicle\Dns\Exception\InvalidTypeError;
 use Icicle\Dns\Exception\NoResponseException;
 use Icicle\Dns\Exception\ResponseIdException;
-use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Executor\BasicExecutor;
 use Icicle\Loop;
-use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Socket\Connector\ConnectorInterface;
-use Icicle\Socket\SocketInterface;
+use Icicle\Socket\Connector\Connector;
+use Icicle\Socket\Socket;
 use Icicle\Tests\Dns\TestCase;
 use LibDNS\Messages\Message;
 use Mockery;
 
-class ExecutorTest extends TestCase
+class BasicExecutorTest extends TestCase
 {
     const ADDRESS = '127.0.0.1';
     const PORT = 53;
@@ -33,14 +33,14 @@ class ExecutorTest extends TestCase
     /**
      * Mock connector.
      *
-     * @var \Icicle\Socket\Connector\ConnectorInterface
+     * @var \Icicle\Socket\Connector\Connector
      */
     protected $connector;
 
     /**
      * Mock socket client.
      *
-     * @var \Icicle\Socket\SocketInterface
+     * @var \Icicle\Socket\Socket
      */
     protected $client;
 
@@ -55,15 +55,15 @@ class ExecutorTest extends TestCase
 
         $this->connector = $this->createConnector($this->client);
 
-        $this->executor = new Executor(self::ADDRESS, self::PORT, $this->connector);
+        $this->executor = new BasicExecutor(self::ADDRESS, self::PORT, $this->connector);
     }
 
     /**
-     * @return \Icicle\Socket\SocketInterface
+     * @return \Icicle\Socket\Socket
      */
     public function createClient()
     {
-        $mock = Mockery::mock(SocketInterface::class);
+        $mock = Mockery::mock(Socket::class);
 
         $mock->shouldReceive('close');
 
@@ -71,13 +71,13 @@ class ExecutorTest extends TestCase
     }
 
     /**
-     * @param \Icicle\Socket\SocketInterface $client
+     * @param \Icicle\Socket\Socket $client
      *
-     * @return \Icicle\Socket\Connector\ConnectorInterface
+     * @return \Icicle\Socket\Connector\Connector
      */
-    public function createConnector(SocketInterface $client)
+    public function createConnector(Socket $client)
     {
-        $mock = Mockery::mock(ConnectorInterface::class);
+        $mock = Mockery::mock(Connector::class);
 
         $mock->shouldReceive('connect')->andReturnUsing(function () use ($client) { return yield $client; });
 

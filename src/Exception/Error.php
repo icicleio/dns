@@ -9,4 +9,4 @@
 
 namespace Icicle\Dns\Exception;
 
-class Error extends \Error {}
+interface Error extends \Icicle\Exception\Error, Throwable {}

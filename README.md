@@ -1,6 +1,6 @@
 # Asynchronous DNS for Icicle
 
-This library is a component for [Icicle](https://github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library uses [Promises](https://github.com/icicleio/Icicle/wiki/Promises) and [Generators](http://www.php.net/manual/en/language.generators.overview.php) for asynchronous operations that may be used to build [Coroutines](//github.com/icicleio/Icicle/wiki/Coroutines) to make writing asynchronous code more like writing synchronous code.
+This library is a component for [Icicle](https://github.com/icicleio/Icicle), providing an asynchronous DNS query executor, resolver, and client connector. An asynchronous DNS server is currently under development and will be added to this component in the future. Like other Icicle components, this library uses [Coroutines](//github.com/icicleio/icicle/wiki/Coroutines) built from [Awaitables](https://github.com/icicleio/icicle/wiki/Awaitables) and [Generators](http://www.php.net/manual/en/language.generators.overview.php) to make writing asynchronous code more like writing synchronous code.
 
 [![Build Status](https://img.shields.io/travis/icicleio/dns/v1.x.svg?style=flat-square)](https://travis-ci.org/icicleio/dns)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/dns/v1.x.svg?style=flat-square)](https://coveralls.io/r/icicleio/dns)
@@ -10,7 +10,8 @@ This library is a component for [Icicle](https://github.com/icicleio/Icicle), pr
 
 ##### Requirements
 
-- PHP 5.5+
+- PHP 5.5+ for v0.6.x branch (current stable) and v1.x branch (mirrors current stable)
+- PHP 7 for v2.0 branch (under development) supporting generator delegation and return expressions
 
 ##### Installation
 
@@ -28,25 +29,23 @@ You can also manually edit `composer.json` to add this library as a project requ
 // composer.json
 {
     "require": {
-        "icicleio/dns": "^0.5"
+        "icicleio/dns": "^0.6"
     }
 }
 ```
 
 #### Example
 
-The example below uses a resolver to asynchronously find the IP address for the domain `icicle.io`.
+The example below uses the `Icicle\Dns\resolver()` function to asynchronously find the IP address for the domain `icicle.io`.
 
 ```php
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Resolver\Resolver;
+use Icicle\Dns;
 use Icicle\Loop;
 
-$resolver = new Resolver();
-
-$generator = function ($domain) use ($resolver) {
+$generator = function ($domain) {
     try {
-        $ips = (yield $resolver->resolve($domain));
+        $ips = (yield Dns\resolve($domain));
         
         foreach ($ips as $ip) {
             echo "IP: {$ip}\n";
@@ -66,10 +65,13 @@ Loop\run();
 
 - [Executors](#executors) - Executes a DNS query.
     - [Creating an Executor](#creating-an-executor)
+    - [execute() function](#execute-function)
     - [Using an Executor](#using-an-executor)
     - [MultiExecutor](#multiexecutor)
 - [Resolver](#resolver) - Resolves the IP address for a domain name.
+    - [resolve() function](#resolve-function)
 - [Connector](#connector) - Connects to a host and port.
+    - [connect() function](#connect-function)
 
 Methods returning a `Generator` can be used to create a [Coroutine](https://github.com/icicleio/icicle/wiki/Coroutines) (e.g., `new Coroutine($executor->execute(...))`) or yielded within another Coroutine (use `yield from` in PHP 7 for better performance).
 
@@ -87,14 +89,14 @@ ClassOrInterfaceName::methodName(ArgumentType $arg): ReturnType
 
 Executors are the foundation of the DNS component, performing any DNS query and returning the full results of that query. Resolvers and connectors depend on executors to perform the DNS query required for their operation.
 
-Each executor implements `Icicle\Dns\Executor\ExecutorInterface` that defines a single method, `execute()`.
+Each executor implements `Icicle\Dns\Executor\Executor` that defines a single method, `execute()`.
 
 ```php
-$executorInterface->execute(
+Executor::execute(
     string $domain,
     string|int $type,
     array $options = []
-): Generator
+): \Generator
 ```
 
 Option | Type | Description
@@ -110,17 +112,53 @@ Fulfilled | `LibDNS\Message\Message` | Query response. Usage described below.
 Rejected | `Icicle\Dns\Exception\FailureException` | If sending the request or parsing the response fails.
 Rejected | `\Icicle\Dns\Exception\MessageException` | If the server returns a non-zero response code or no response is received.
 
-### Creating an Executor
+### execute() Function
 
-The simplest executor is `Icicle\Dns\Executor\Executor`, created by providing the constructor with the IP address of a DNS server to use to perform queries. It is recommended to use a DNS server closest to you, such as the local router. If this is not possible, Google operates two DNS server that also can be used at `8.8.8.8` and `8.8.4.4`.
+The simplest way to perform a DNS query is to use the `Icicle\Dns\execute()` function. This function uses an `Icicle\Dns\Executor\Executor` object that can be set or retrieved using the `Icicle\Dns\executor()` function.
 
 ```php
-use Icicle\Dns\Executor\Executor;
-
-$executor = new Executor('8.8.8.8');
+`Icicle\Dns\execute(
+    string $domain,
+    string|int $type,
+    array $options = []
+): \Generator
 ```
 
-The `Icicle\Dns\Executor\Executor` constructor also accepts an instance of `Icicle\Socket\Client\Connector` as the second argument if custom behavior is desired when connecting to the name server. If no instance is given, one is automatically created.
+Example using the `execute()` function to find the A record for a domain:
+
+```php
+use Icicle\Coroutine\Coroutine;
+use Icicle\Dns;
+use Icicle\Loop;
+use LibDNS\Messages\Message;
+
+$coroutine = new Coroutine(Dns\execute('google.com', 'A'));
+
+$coroutine->done(
+    function (Message $message) {
+        foreach ($message->getAnswerRecords() as $resource) {
+            echo "TTL: {$resource->getTTL()} Value: {$resource->getData()}\n";
+        }
+    },
+    function (Exception $exception) {
+        echo "Query failed: {$exception->getMessage()}\n";
+    }
+);
+
+Loop\run();
+```
+
+### Creating an Executor
+
+The simplest executor is `Icicle\Dns\Executor\BasicExecutor`, created by providing the constructor with the IP address of a DNS server to use to perform queries. It is recommended to use a DNS server closest to you, such as the local router. If this is not possible, Google operates two DNS server that also can be used at `8.8.8.8` and `8.8.4.4`.
+
+```php
+use Icicle\Dns\Executor\BasicExecutor;
+
+$executor = new BasicExecutor('8.8.8.8');
+```
+
+The `Icicle\Dns\Executor\BasicExecutor` constructor also accepts an instance of `Icicle\Socket\Connector\Connector` as the second argument if custom behavior is desired when connecting to the name server. If no instance is given, the default global connector is used (see `Icicle\Socket\connector()`).
 
 ### Using an Executor
 
@@ -143,11 +181,11 @@ Below is an example of how an executor can be used to find the NS records for a 
 
 ```php
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Executor\BasicExecutor;
 use Icicle\Loop;
 use LibDNS\Messages\Message;
 
-$executor = new Executor('8.8.8.8');
+$executor = new BasicExecutor('8.8.8.8');
 
 $coroutine = new Coroutine($executor->execute('google.com', 'NS'));
 
@@ -171,15 +209,15 @@ The `Icicle\Dns\Executor\MultiExecutor` class can be used to combine multiple ex
 
 ```php
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Executor\BasicExecutor;
 use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
 use LibDNS\Messages\Message;
 
 $executor = new MultiExecutor();
 
-$executor->add(new Executor('8.8.8.8'));
-$executor->add(new Executor('8.8.4.4'));
+$executor->add(new BasicExecutor('8.8.8.8'));
+$executor->add(new BasicExecutor('8.8.4.4'));
 
 // Executor will send query to 8.8.4.4 if 8.8.8.8 does not respond.
 $coroutine = new Coroutine($executor->execute('google.com', 'MX'));
@@ -202,13 +240,13 @@ Queries using the above executor will automatically send requests to the second 
 
 ## Resolver
 
-A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\Resolver` implements `Icicle\Dns\Resolver\ResolverInterface`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the coroutine returned from `resolve()` with an array of IP addresses (even if only one or zero IP addresses is found, the coroutine is still resolved with an array).
+A resolver finds the IP addresses for a given domain. `Icicle\Dns\Resolver\BasicResolver` implements `Icicle\Dns\Resolver\Resolver`, which defines a single method, `resolve()`. A resolver is essentially a specialized executor that performs only `A` queries, fulfilling the coroutine returned from `resolve()` with an array of IP addresses (even if only one or zero IP addresses is found, the coroutine is still resolved with an array).
 
 ```php
-$resolverInterface->resolve(
+Resolver::resolve(
     string $domain,
     array $options = []
-): Generator
+): \Generator
 ```
 
 Option | Type | Description
@@ -217,9 +255,43 @@ Option | Type | Description
 `timeout` | `float` | Timeout until query fails. Default is 2 seconds.
 `retries` | `int` | Number of times to attempt the query before failing. Default is 5 times.
 
+### resolve() Function
+
+The simplest way find the IP address for a domain is to use the `Icicle\Dns\resolve()` function. This function uses an `Icicle\Dns\Resolver\Resolver` object that can be set or retrieved using the `Icicle\Dns\resolver()` function.
+
+```php
+`Icicle\Dns\resolve(
+    string $domain,
+    array $options = []
+): \Generator
+```
+
+Example using the `resolve()` function to resolve the IP address of a domain:
+
+```php
+use Icicle\Coroutine\Coroutine;
+use Icicle\Dns;
+use Icicle\Loop;
+
+$coroutine = new Coroutine(Dns\resolve('google.com'));
+
+$coroutine->done(
+    function (array $ips) {
+        foreach ($ips as $ip) {
+            echo "IP: {$ip}\n";
+        }
+    },
+    function (Exception $exception) {
+        echo "Query failed: {$exception->getMessage()}\n";
+    }
+);
+
+Loop\run();
+```
+
 Like executors, a resolver will retry a query `retries` times if the name server does not respond within `timeout` seconds.
 
-The `Icicle\Resolver\Resolver` class is constructed by passing an `Icicle\Executor\ExecutorInterface` instance that is used to execute queries to resolve domains. If no executor is given, one will be created by default, using `8.8.8.8` and `8.8.4.4` as DNS servers for the executor.
+The `Icicle\Resolver\BasicResolver` class is constructed by passing an `Icicle\Executor\Executor` instance that is used to execute queries to resolve domains. If no executor is given, one will be created by default, using `8.8.8.8` and `8.8.4.4` as DNS servers for the executor.
 
 Resolution | Type | Description
 :-: | :-- | :--
@@ -231,11 +303,10 @@ Rejected | `\Icicle\Dns\Exception\MessageException` | If the server returns a no
 
 ```php
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Executor\Executor;
-use Icicle\Dns\Resolver\Resolver;
+use Icicle\Dns\Resolver\BasicResolver;
 use Icicle\Loop;
 
-$resolver = new Resolver();
+$resolver = new BasicResolver();
 
 $coroutine = new Coroutine($resolver->resolve('google.com'));
 
@@ -255,48 +326,82 @@ Loop\run();
 
 ## Connector
 
-The connector component connects to a server by first resolving the hostname provided, then making the connection and resolving the returned coroutine with an instance of `Icicle\Socket\Client\ClientInterface`. `Icicle\Dns\Connector\Connector` implements `Icicle\Socket\Client\ConnectorInterface` and `Icicle\Dns\Connector\ConnectorInterface`, allowing it to be used anywhere a standard connector (`Icicle\Socket\Client\ConnectorInterface`) is required, or allowing components to require a resolving connector (`Icicle\Dns\Connector\ConnectorInterface`).
+The connector component connects to a server by first resolving the hostname provided, then making the connection and resolving the returned coroutine with an instance of `Icicle\Socket\Socket`.
 
-`Icicle\Dns\Connector\ConnectorInterface` defines a single method, `connect()` that should resolve a host name and connect to one of the resolved servers, resolving the coroutine with the connected client.
+`Icicle\Dns\Connector\Connector` defines a single method, `connect()` that should resolve a host name and connect to one of the resolved servers, resolving the coroutine with the connected client.
 
 ```php
-$connectorInterface->connect(
+Connector::connect(
     string $domain,
     int $port,
     array $options = [],
-): Generator
+): \Generator
 ```
 
-`Icicle\Dns\Connector\Connector` will attempt to connect to one of the IP addresses found for a given host name. If the server at that IP is unresponsive, the connector will attempt to establish a connection to the next IP in the list until a server accepts the connection. Only if the connector is unable to connect to all of the IPs will it reject the coroutine returned from `connect()`. The constructor also optionally accepts an instance of `Icicle\Socket\Client\ConnectorInterface` if custom behavior is desired when connecting to the resolved host.
+### connect() Function
+
+The simplest way to resolve a domain name and connect to a port on the resolved host is with the `Icicle\Dns\connect()` function. This function uses an `Icicle\Dns\Connector\Connector` object that can be set or retrieved using the `Icicle\Dns\connector()` function.
+
+```php
+`Icicle\Dns\connect(
+    string $domain,
+    int $port,
+    array $options = []
+): \Generator
+```
+
+Example using the `connect()` function to resolve the IP address of a domain and connect to port 443:
+
+```php
+use Icicle\Dns;
+use Icicle\Loop;
+use Icicle\Socket\Socket;
+
+$connector = new DefaultConnector();
+
+$coroutine = new Coroutine(Dns\connect('google.com', 443));
+
+$coroutine->done(
+    function (Socket $client) {
+        echo "IP: {$client->getRemoteAddress()}\n";
+        echo "Port: {$client->getRemotePort()}\n";
+    },
+    function (Exception $exception) {
+        echo "Connecting failed: {$exception->getMessage()}\n";
+    }
+);
+
+Loop\run();
+```
+
+`Icicle\Dns\Connector\DefaultConnector` will attempt to connect to one of the IP addresses found for a given host name. If the server at that IP is unresponsive, the connector will attempt to establish a connection to the next IP in the list until a server accepts the connection. Only if the connector is unable to connect to all of the IPs will it reject the coroutine returned from `connect()`. The constructor also optionally accepts an instance of `Icicle\Socket\Connector\Connector` if custom behavior is desired when connecting to the resolved host.
 
 Option | Type | Description
 :-- | :-- | :--
-`mode` | `int` | Resolution mode: IPv4 or IPv6. Use the constants `ResolverInterface::IPv4` or ``ResolverInterface::IPv6`.
+`mode` | `int` | Resolution mode: IPv4 or IPv6. Use the constants `Resolver::IPv4` or ``Resolver::IPv6`.
 `timeout` | `float` | Timeout until query fails. Default is 2 seconds.
 `retries` | `int` | Number of times to attempt the query before failing. Default is 5 times.
 
-Additionally, all the [other options available](https://github.com/icicleio/socket#connect) to `Icicle\Socket\Client\Connector::connect()` may also be used.
+Additionally, all the [other options available](https://github.com/icicleio/socket#connect) to `Icicle\Socket\Connector\Connector::connect()` may also be used.
 
 Resolution | Type | Description
 :-: | :-- | :--
-Fulfilled | `Icicle\Socket\Client\ClientInterface` | Connected client.
+Fulfilled | `Icicle\Socket\Socket` | Connected client.
 Rejected | `Icicle\Socket\Exception\FailureException` | If resolving the IP or connecting fails.
 
 ##### Example
 
 ```php
-use Icicle\Dns\Connector\Connector;
-use Icicle\Dns\Executor\Executor;
-use Icicle\Dns\Resolver\Resolver;
+use Icicle\Dns\Connector\DefaultConnector;
 use Icicle\Loop;
-use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Socket;
 
-$connector = new Connector();
+$connector = new DefaultConnector();
 
 $coroutine = new Coroutine($connector->connect('google.com', 80));
 
 $coroutine->done(
-    function (ClientInterface $client) {
+    function (Socket $client) {
         echo "IP: {$client->getRemoteAddress()}\n";
         echo "Port: {$client->getRemotePort()}\n";
     },
