@@ -12,7 +12,7 @@ namespace Icicle\Tests\Dns\Executor;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Exception\MessageException;
 use Icicle\Dns\Exception\NoExecutorsError;
-use Icicle\Dns\Executor\ExecutorInterface;
+use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Executor\MultiExecutor;
 use Icicle\Loop;
 use Icicle\Tests\Dns\TestCase;
@@ -31,11 +31,11 @@ class MultiExecutorTest extends TestCase
     }
 
     /**
-     * @return \Icicle\Dns\Executor\ExecutorInterface
+     * @return \Icicle\Dns\Executor\Executor
      */
     public function createExecutor()
     {
-        return $this->getMock(ExecutorInterface::class);
+        return $this->getMock(Executor::class);
     }
 
     public function testNoExecutors()

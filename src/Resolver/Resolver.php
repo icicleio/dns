@@ -9,56 +9,22 @@
 
 namespace Icicle\Dns\Resolver;
 
-use Icicle\Dns;
-use Icicle\Dns\Exception\InvalidArgumentError;
-use Icicle\Dns\Executor\ExecutorInterface;
-
-class Resolver implements ResolverInterface
+interface Resolver
 {
+    const IPv4 = 1;  // A
+    const IPv6 = 28; // AAAA
+
     /**
-     * @var \Icicle\Dns\Executor\ExecutorInterface
+     * @coroutine
+     *
+     * @param   string $domain Domain name to resolve.
+     * @param   mixed[] $options
+     *
+     * @return  \Generator
+     *
+     * @resolve string[] List of IP address. May return an empty array if the host cannot be found.
+     *
+     * @throws \Icicle\Dns\Exception\FailureException If the server returns a non-zero response code.
      */
-    private $executor;
-    
-    /**
-     * @param \Icicle\Dns\Executor\ExecutorInterface|null $executor
-     */
-    public function __construct(ExecutorInterface $executor = null)
-    {
-        $this->executor = $executor ?: Dns\executor();
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function resolve($domain, array $options = [])
-    {
-        $mode = isset($options['mode']) ? $options['mode'] : self::IPv4;
-
-        if (!($mode === self::IPv4 || $mode === self::IPv6)) {
-            throw new InvalidArgumentError('Invalid resolver mode.');
-        }
-
-        if (strtolower($domain) === 'localhost') {
-            yield $mode === self::IPv4 ? ['127.0.0.1'] : ['::1'];
-            return;
-        }
-
-        /** @var \LibDNS\Messages\Message $response */
-        $response = (yield $this->executor->execute($domain, $mode, $options));
-
-        $answers = $response->getAnswerRecords();
-
-        $result = [];
-
-        /** @var \LibDNS\Records\Resource $record */
-        foreach ($answers as $record) {
-            // Skip any CNAME or other records returned in result.
-            if ($record->getType() === $mode) {
-                $result[] = $record->getData()->getField(0)->getValue();
-            }
-        }
-
-        yield $result;
-    }
+    public function resolve($domain, array $options = []);
 }

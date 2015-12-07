@@ -9,13 +9,13 @@
 
 namespace Icicle\Dns;
 
+use Icicle\Dns\Connector\DefaultConnector;
 use Icicle\Dns\Connector\Connector;
-use Icicle\Dns\Connector\ConnectorInterface;
+use Icicle\Dns\Executor\BasicExecutor;
 use Icicle\Dns\Executor\Executor;
-use Icicle\Dns\Executor\ExecutorInterface;
 use Icicle\Dns\Executor\MultiExecutor;
+use Icicle\Dns\Resolver\BasicResolver;
 use Icicle\Dns\Resolver\Resolver;
-use Icicle\Dns\Resolver\ResolverInterface;
 
 if (!function_exists(__NAMESPACE__ . '\execute')) {
     /**
@@ -41,11 +41,11 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
     /**
      * Accesses and sets the global executor instance.
      *
-     * @param \Icicle\Dns\Executor\ExecutorInterface|null $executor
+     * @param \Icicle\Dns\Executor\Executor|null $executor
      *
-     * @return \Icicle\Dns\Executor\ExecutorInterface
+     * @return \Icicle\Dns\Executor\Executor
      */
-    function executor(ExecutorInterface $executor = null)
+    function executor(Executor $executor = null)
     {
         static $instance;
 
@@ -53,8 +53,8 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
             $instance = $executor;
         } elseif (null === $instance) {
             $instance = new MultiExecutor();
-            $instance->add(new Executor('8.8.8.8'));
-            $instance->add(new Executor('8.8.4.4'));
+            $instance->add(new BasicExecutor('8.8.8.8'));
+            $instance->add(new BasicExecutor('8.8.4.4'));
         }
 
         return $instance;
@@ -82,18 +82,18 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
     /**
      * Accesses and sets the global resolver instance.
      *
-     * @param \Icicle\Dns\Resolver\ResolverInterface|null $resolver
+     * @param \Icicle\Dns\Resolver\Resolver|null $resolver
      *
-     * @return \Icicle\Dns\Resolver\ResolverInterface
+     * @return \Icicle\Dns\Resolver\Resolver
      */
-    function resolver(ResolverInterface $resolver = null)
+    function resolver(Resolver $resolver = null)
     {
         static $instance;
 
         if (null !== $resolver) {
             $instance = $resolver;
         } elseif (null === $instance) {
-            $instance = new Resolver();
+            $instance = new BasicResolver();
         }
 
         return $instance;
@@ -122,18 +122,18 @@ if (!function_exists(__NAMESPACE__ . '\execute')) {
     /**
      * Accesses and sets the global connector instance.
      *
-     * @param \Icicle\Dns\Connector\ConnectorInterface|null $connector
+     * @param \Icicle\Dns\Connector\Connector|null $connector
      *
-     * @return \Icicle\Dns\Connector\ConnectorInterface
+     * @return \Icicle\Dns\Connector\Connector
      */
-    function connector(ConnectorInterface $connector = null)
+    function connector(Connector $connector = null)
     {
         static $instance;
 
         if (null !== $connector) {
             $instance = $connector;
         } elseif (null === $instance) {
-            $instance = new Connector();
+            $instance = new DefaultConnector();
         }
 
         return $instance;

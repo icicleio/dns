@@ -10,17 +10,17 @@
 namespace Icicle\Tests\Dns;
 
 use Icicle\Dns;
-use Icicle\Dns\Connector\ConnectorInterface;
-use Icicle\Dns\Executor\ExecutorInterface;
-use Icicle\Dns\Resolver\ResolverInterface;
-use Icicle\Socket\SocketInterface;
+use Icicle\Dns\Connector\Connector;
+use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Resolver\Resolver;
+use Icicle\Socket\Socket;
 use LibDNS\Messages\Message;
 
 class FunctionsTest extends TestCase
 {
     public function testGetExecutor()
     {
-        $this->assertInstanceOf(ExecutorInterface::class, Dns\executor());
+        $this->assertInstanceOf(Executor::class, Dns\executor());
     }
 
     /**
@@ -28,7 +28,7 @@ class FunctionsTest extends TestCase
      */
     public function testSetExecutor()
     {
-        $executor = $this->getMock(ExecutorInterface::class);
+        $executor = $this->getMock(Executor::class);
         Dns\executor($executor);
 
         $this->assertSame($executor, Dns\executor());
@@ -59,7 +59,7 @@ class FunctionsTest extends TestCase
 
     public function testGetResolver()
     {
-        $this->assertInstanceOf(ResolverInterface::class, Dns\resolver());
+        $this->assertInstanceOf(Resolver::class, Dns\resolver());
     }
 
     /**
@@ -67,7 +67,7 @@ class FunctionsTest extends TestCase
      */
     public function testSetResolver()
     {
-        $resolver = $this->getMock(ResolverInterface::class);
+        $resolver = $this->getMock(Resolver::class);
         Dns\resolver($resolver);
 
         $this->assertSame($resolver, Dns\resolver());
@@ -95,7 +95,7 @@ class FunctionsTest extends TestCase
 
     public function testGetConnector()
     {
-        $this->assertInstanceOf(ConnectorInterface::class, Dns\connector());
+        $this->assertInstanceOf(Connector::class, Dns\connector());
     }
 
     /**
@@ -103,7 +103,7 @@ class FunctionsTest extends TestCase
      */
     public function testSetConnector()
     {
-        $connector = $this->getMock(ConnectorInterface::class);
+        $connector = $this->getMock(Connector::class);
         Dns\connector($connector);
 
         $this->assertSame($connector, Dns\connector());
@@ -124,7 +124,7 @@ class FunctionsTest extends TestCase
             ->method('connect')
             ->with($this->identicalTo($domain), $this->identicalTo($port), $this->identicalTo($options))
             ->will($this->returnCallback(function () {
-                yield $this->getMock(SocketInterface::class);
+                yield $this->getMock(Socket::class);
             }));
 
         $this->assertInstanceOf(\Generator::class, Dns\connect($domain, $port, $options));

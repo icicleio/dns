@@ -16,8 +16,8 @@
         }
     ],
     "require": {
-        "icicleio/icicle": "^0.8",
-        "icicleio/socket": "^0.4",
+        "icicleio/icicle": "^0.9.1",
+        "icicleio/socket": "^0.5",
         "daverandom/libdns": "^1",
         "paragonie/random_compat": "^1"
     },
