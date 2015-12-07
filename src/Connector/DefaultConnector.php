@@ -44,7 +44,7 @@ class DefaultConnector implements Connector
     /**
      * {@inheritdoc}
      */
-    public function connect($domain, $port, array $options = [])
+    public function connect($domain, $port = null, array $options = [])
     {
         // Check if $domain is actually an IP address.
         if (preg_match(self::IP_REGEX, $domain)) {

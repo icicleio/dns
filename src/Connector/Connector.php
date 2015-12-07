@@ -9,7 +9,9 @@
 
 namespace Icicle\Dns\Connector;
 
-interface Connector
+use Icicle\Socket\Connector\Connector as SocketConnector;
+
+interface Connector extends SocketConnector
 {
     /**
      * @coroutine
@@ -20,11 +22,11 @@ interface Connector
      *
      * @return \Generator
      *
-     * @resolve resource
+     * @resolve \Icicle\Socket\Socket
      *
      * @throws \Icicle\Socket\Exception\FailureException If connecting fails.
      *
-     * @see \Icicle\Socket\Client\Connector::connect() $options are the same as this method.
+     * @see \Icicle\Socket\Connector\Connector::connect() $options are the same as this method.
      */
-    public function connect($domain, $port, array $options = []);
+    public function connect($domain, $port = null, array $options = []);
 }
