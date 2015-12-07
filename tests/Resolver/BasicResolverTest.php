@@ -10,10 +10,10 @@
 namespace Icicle\Tests\Dns\Resolver;
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Dns\Exception\InvalidArgumentError;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\BasicResolver;
 use Icicle\Dns\Resolver\Resolver;
+use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
 use Icicle\Tests\Dns\TestCase;
 use Mockery;

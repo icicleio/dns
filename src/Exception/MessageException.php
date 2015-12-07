@@ -9,4 +9,4 @@
 
 namespace Icicle\Dns\Exception;
 
-class MessageException extends Exception {}
+class MessageException extends \Exception implements Exception {}

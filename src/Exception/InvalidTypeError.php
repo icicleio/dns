@@ -9,7 +9,9 @@
 
 namespace Icicle\Dns\Exception;
 
-class InvalidTypeError extends Error
+use Icicle\Exception\InvalidArgumentError;
+
+class InvalidTypeError extends InvalidArgumentError implements Error
 {
     /**
      * @var int|string

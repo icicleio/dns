@@ -10,8 +10,8 @@
 namespace Icicle\Dns\Resolver;
 
 use Icicle\Dns;
-use Icicle\Dns\Exception\InvalidArgumentError;
 use Icicle\Dns\Executor\Executor;
+use Icicle\Exception\InvalidArgumentError;
 
 class BasicResolver implements Resolver
 {
