@@ -5,17 +5,18 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine;
 use Icicle\Dns;
-use Icicle\Dns\Executor\ExecutorInterface;
+use Icicle\Dns\Executor\Executor;
+use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
 
 if (3 > $argc) {
-    throw new InvalidArgumentException('Too few arguments provided. Usage: {DomainName} {RecordType}');
+    throw new InvalidArgumentError('Too few arguments provided. Usage: {DomainName} {RecordType}');
 }
 
 $domain = $argv[1];
 $type = $argv[2];
 
-$coroutine = Coroutine\create(function ($query, $type, $timeout = ExecutorInterface::DEFAULT_TIMEOUT) {
+$coroutine = Coroutine\create(function ($query, $type, $timeout = Executor::DEFAULT_TIMEOUT) {
     printf("Query: %s\n", $query);
 
     /** @var \LibDNS\Messages\Message $response */
